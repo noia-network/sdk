@@ -1,0 +1,10 @@
+{
+    "cSpell.words": [
+        "Noia",
+        "endregion",
+        "ipfs",
+        "loglevel",
+        "prettierrc"
+    ],
+    "typescript.tsdk": "node_modules\\typescript\\lib"
+}

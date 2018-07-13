@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es6",
+        "removeComments": true,
+        "rootDir": ".",
+        "outDir": "../",
+        "sourceMap": false,
+        "skipDefaultLibCheck": true,
+        "declaration": false,
+        "pretty": true,
+        "strict": true,
+        "lib": ["es6", "dom"],
+        "typeRoots": ["../node_modules/@types", "@types"]
+    },
+    "exclude": ["node_modules"]
+}
