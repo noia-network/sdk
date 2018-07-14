@@ -1,7 +1,7 @@
 # SDK
 
 ## Links
-- [SDK](./docs/index.md)
+- [SDK Docs](./docs/api/index.md)
 - [Examples](https://github.com/noia-network/examples)
 
 ## License
