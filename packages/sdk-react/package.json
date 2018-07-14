@@ -5,8 +5,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "pretest": "tsc --noEmit",
-    "test": "prettier --config .prettierrc --loglevel warn --list-different src/**/*",
+    "test": "tsc --noEmit",
     "build": "tsc -p .",
     "watch": "tsc -p . -w"
   },
