@@ -1,5 +1,7 @@
 import * as React from "react";
+import { NoiaClientContainer } from "@noia-network/sdk";
 import * as mimeTypes from "mime-types";
+
 
 import { Helpers } from "../utils/helpers";
 
@@ -75,7 +77,7 @@ export class Video extends React.Component<VideoProps, VideoState> {
   }
 
   public async componentDidMount(): Promise<void> {
-    const bytes = await NoiaClient.download({
+    const bytes = await NoiaClientContainer.getClient().download({
       src: this.props.src
     });
 

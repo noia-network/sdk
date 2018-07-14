@@ -1,6 +1,7 @@
 {
   "name": "sdk-repository",
   "private": true,
+  "engines" : { "node" : "<9.11" },
   "scripts": {
     "rush-install": "rush install",
     "rush-unlink": "rush unlink",

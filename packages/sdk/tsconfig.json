@@ -15,5 +15,5 @@
             }
         ]
     },
-    "exclude": ["tools"]
+    "exclude": ["tools", "dist"]
 }

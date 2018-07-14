@@ -1,4 +1,5 @@
 import * as React from "react";
+import { NoiaClientContainer } from "@noia-network/sdk";
 import * as mimeTypes from "mime-types";
 
 import { Helpers } from "../utils/helpers";
@@ -62,7 +63,7 @@ export class Image extends React.Component<ImageProps, ImageState> {
   }
 
   public async componentDidMount(): Promise<void> {
-    const bytes = await NoiaClient.download({
+    const bytes = await NoiaClientContainer.getClient().download({
       src: this.props.src
     });
 
@@ -83,7 +84,7 @@ export class Image extends React.Component<ImageProps, ImageState> {
 
     return (
       <img
-        ref={(component) => this.element = component}
+        ref={component => (this.element = component)}
         src={`data:${this.props.mimeType};base64,${this.state.base64}`}
         {...this.getProps(this.props)}
       />

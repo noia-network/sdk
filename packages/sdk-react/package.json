@@ -1,9 +1,14 @@
 {
   "name": "@noia-network/sdk-react",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {},
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "tsc -p . --noEmit",
+    "build": "tsc -p .",
+    "watch": "tsc -p . -w"
+  },
   "keywords": [],
   "author": "NOIA Network",
   "license": "AGPL",
@@ -21,7 +26,7 @@
     "@noia-network/sdk": "^1.0.0-hackathon",
     "@types/mime-types": "^2.1.0",
     "@types/react": "^16.4.6",
-    "mime-types": "file:node_modules/mime-types",
+    "mime-types": "^2.1.18",
     "react": "^16.4.1"
   }
 }

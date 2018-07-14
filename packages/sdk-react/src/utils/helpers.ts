@@ -1,6 +1,6 @@
 export namespace Helpers {
     // tslint:disable
-export function bytesToBase64(arrayBuffer: any): string {
+export function bytesToBase64(arrayBuffer: ArrayBuffer | Buffer): string {
     var base64 = "";
     var encodings = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
