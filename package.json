@@ -1,0 +1,12 @@
+{
+  "name": "sdk-repository",
+  "private": true,
+  "scripts": {
+    "rush-install": "rush install",
+    "rush-unlink": "rush unlink",
+    "build": "rush rebuild"
+  },
+  "devDependencies": {
+    "@microsoft/rush": "^5.0.0"
+  }
+}
