@@ -3,7 +3,7 @@ import { generateWebpackConfig } from "@simplrjs/webpack";
 const config = generateWebpackConfig({
     emitHtml: false,
     projectDirectory: __dirname,
-    entryFile: "./src/index.ts",
+    entryFile: "./src/main.ts",
     outputDirectory: "dist",
     target: "web"
 });
