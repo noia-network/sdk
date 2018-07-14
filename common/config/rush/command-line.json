@@ -1,0 +1,12 @@
+{
+    "$schema": "../../schemas/command-line.schema.json",
+    "commands": [
+        {
+            "commandKind": "bulk",
+            "name": "test",
+            "summary": "-",
+            "description": "-",
+            "enableParallelism": false
+        }
+    ]
+}
