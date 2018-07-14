@@ -48,7 +48,7 @@ public async download(dto: NoiaRequest): Promise<Buffer>;
 
 | Name | Type                                  |
 | ---- | ------------------------------------- |
-| dto  | NoiaRequest |
+| dto  | [NoiaRequest][InterfaceDeclaration-9] |
 
 **Return type**
 
@@ -66,11 +66,11 @@ public stream(dto: NoiaRequest): NoiaStreamDto;
 
 | Name | Type                                  |
 | ---- | ------------------------------------- |
-| dto  | NoiaRequest |
+| dto  | [NoiaRequest][InterfaceDeclaration-9] |
 
 **Return type**
 
-NoiaStreamDto
+[NoiaStreamDto][InterfaceDeclaration-10]
 
 ----------
 
@@ -84,7 +84,7 @@ protected async startStream(dto: NoiaRequest, emitter: NoiaEmitter): Promise<voi
 
 | Name    | Type                                  |
 | ------- | ------------------------------------- |
-| dto     | NoiaRequest |
+| dto     | [NoiaRequest][InterfaceDeclaration-9] |
 | emitter | NoiaEmitter     |
 
 **Return type**
@@ -103,7 +103,7 @@ public async downloadPiece(dto: NoiaPieceRequest): Promise<Buffer>;
 
 | Name | Type                                        |
 | ---- | ------------------------------------------- |
-| dto  | NoiaPieceRequest |
+| dto  | [NoiaPieceRequest][InterfaceDeclaration-16] |
 
 **Return type**
 
@@ -121,7 +121,7 @@ protected async ensureRequest(dto: NoiaRequest): Promise<RequestData>;
 
 | Name | Type                                  |
 | ---- | ------------------------------------- |
-| dto  | NoiaRequest |
+| dto  | [NoiaRequest][InterfaceDeclaration-9] |
 
 **Return type**
 
@@ -143,7 +143,7 @@ protected nextNode(request: RequestData): NodeClient | undefined;
 
 **Return type**
 
-NodeClient | undefined
+[NodeClient][ClassDeclaration-1] | undefined
 
 ----------
 
@@ -157,7 +157,7 @@ protected async fallback(dto: NoiaRequest): Promise<Buffer>;
 
 | Name | Type                                  |
 | ---- | ------------------------------------- |
-| dto  | NoiaRequest |
+| dto  | [NoiaRequest][InterfaceDeclaration-9] |
 
 **Return type**
 
@@ -175,7 +175,7 @@ protected async fallbackPiece(dto: NoiaPieceRequest, pieceLength: number = 16384
 
 | Name        | Type                                        | Default value |
 | ----------- | ------------------------------------------- | ------------- |
-| dto         | NoiaPieceRequest |               |
+| dto         | [NoiaPieceRequest][InterfaceDeclaration-16] |               |
 | pieceLength | number                                      | 16384         |
 
 **Return type**
@@ -204,7 +204,7 @@ protected nodes: NodeClient[];
 
 **Type**
 
-NodeClient[]
+[NodeClient][ClassDeclaration-1][]
 
 ----------
 
@@ -221,13 +221,24 @@ number
 [ClassDeclaration-0]: noiaclient.md#noiaclient
 [Constructor-0]: noiaclient.md#constructorworkerconstructor
 [MethodDeclaration-4]: noiaclient.md#downloaddto
+[InterfaceDeclaration-9]: ../index.md#noiarequest
 [MethodDeclaration-5]: noiaclient.md#streamdto
+[InterfaceDeclaration-9]: ../index.md#noiarequest
+[InterfaceDeclaration-10]: ../index.md#noiastreamdto
 [MethodDeclaration-6]: noiaclient.md#startstreamdto-emitter
+[InterfaceDeclaration-9]: ../index.md#noiarequest
 [MethodDeclaration-7]: noiaclient.md#downloadpiecedto
+[InterfaceDeclaration-16]: ../index.md#noiapiecerequest
 [MethodDeclaration-8]: noiaclient.md#ensurerequestdto
+[InterfaceDeclaration-9]: ../index.md#noiarequest
 [MethodDeclaration-9]: noiaclient.md#nextnoderequest
+[ClassDeclaration-1]: nodeclient.md#nodeclient
 [MethodDeclaration-10]: noiaclient.md#fallbackdto
+[InterfaceDeclaration-9]: ../index.md#noiarequest
 [MethodDeclaration-11]: noiaclient.md#fallbackpiecedto-piecelength
+[InterfaceDeclaration-16]: ../index.md#noiapiecerequest
 [PropertyDeclaration-0]: noiaclient.md#requests
+[InterfaceDeclaration-8]: ../index.md#dictionary
 [PropertyDeclaration-5]: noiaclient.md#nodes
+[ClassDeclaration-1]: nodeclient.md#nodeclient
 [PropertyDeclaration-6]: noiaclient.md#lastusednodeindex
