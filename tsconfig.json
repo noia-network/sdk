@@ -6,6 +6,7 @@
         "outDir": "dist",
         "declaration": true,
         "lib": ["dom", "es2015"],
+        "types": ["node"],
         "plugins": [
             {
                 "name": "tslint-language-service",
