@@ -1,5 +1,5 @@
 import { EventSubscription } from "fbemitter";
-import { NodeResult } from "./contracts/node-client";
+import { NodeResult, PieceRequest } from "./contracts/node-client";
 
 // tslint:disable-next-line no-any
 export interface Dictionary<TValue = any> {
@@ -54,4 +54,10 @@ export interface NoiaClientEventMap {
     pieceDone: NoiaPieceDto;
     pieceStart: NoiaPieceStartDto;
     allPiecesStarted: {};
+}
+
+export interface PieceFromTorrentWithData {
+    msg: PieceRequest;
+    buffer: Buffer;
+    arrayBuffer: ArrayBuffer;
 }
