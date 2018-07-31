@@ -6,3 +6,8 @@ declare module "simple-sha1" {
     function sha1(data: string | Buffer, callback: (hash: string) => void): void;
     export = sha1;
 }
+
+
+declare module "detectrtc" {
+    function isWebRTCSupported(): boolean;
+}
