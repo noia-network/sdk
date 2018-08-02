@@ -10,6 +10,11 @@ export interface NoiaRequest {
     src: string;
 }
 
+export enum ConnectionType {
+    Webrtc = "webrtc",
+    Ws = "ws"
+}
+
 export interface NoiaPieceRequest extends NoiaRequest {
     pieceIndex: number;
 }
@@ -54,10 +59,13 @@ export interface NoiaClientEventMap {
     pieceDone: NoiaPieceDto;
     pieceStart: NoiaPieceStartDto;
     allPiecesStarted: {};
+    webRtcPieceStart: WebRTCPieceResponse;
+    webRtcPieceDone: ArrayBuffer;
 }
 
-export interface PieceFromTorrentWithData {
-    msg: PieceRequest;
-    buffer: Buffer;
-    arrayBuffer: ArrayBuffer;
+export interface WebRTCPieceResponse {
+    index: number;
+    infoHash: string;
+    offset: number;
+    data?: Buffer;
 }
