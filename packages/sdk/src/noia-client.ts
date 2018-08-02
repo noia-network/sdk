@@ -132,6 +132,7 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
 
     protected async startStream(dto: NoiaRequest, emitter: NoiaEmitter): Promise<void> {
         // More info about browser support: https://caniuse.com/#search=webrtc
+        // `Edge` browser excluded, because `Edge` not support `RTCDataChannel`.
         const isWebRTCSupported = DetectRTC.isWebRTCSupported && !DetectRTC.browser.isEdge;
 
         emitter.emit("fileStart", {});
