@@ -9,5 +9,5 @@ declare module "simple-sha1" {
 
 
 declare module "detectrtc" {
-    function isWebRTCSupported(): boolean;
+    const isWebRTCSupported: boolean;
 }
