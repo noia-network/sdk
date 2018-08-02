@@ -7,7 +7,19 @@ declare module "simple-sha1" {
     export = sha1;
 }
 
-
 declare module "detectrtc" {
     const isWebRTCSupported: boolean;
+    const browser: BrowserDto;
+
+    interface BrowserDto {
+        name: string;
+        version: string;
+        isFirefox: boolean;
+        isOpera: boolean;
+        isIE: boolean;
+        isSafari: boolean;
+        isChrome: boolean;
+        isEdge: boolean;
+        isPrivateBrowsing: boolean;
+    }
 }

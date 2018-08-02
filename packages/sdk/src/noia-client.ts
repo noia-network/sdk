@@ -62,7 +62,7 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
                 webRtcPieces.push(webRTCPieceResponse);
             });
             streamer.emitter.addListener("webRtcPieceDone", arrayBuffer => {
-                const buffer = new Buffer(arrayBuffer);
+                const buffer = Buffer.from(arrayBuffer);
 
                 const pieceIndex = buffer.readUInt32BE(0);
                 const offset = buffer.readUInt32BE(0 + 4);
@@ -131,7 +131,8 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
     }
 
     protected async startStream(dto: NoiaRequest, emitter: NoiaEmitter): Promise<void> {
-        const isWebRTCSupported = DetectRTC.isWebRTCSupported;
+        // More info about browser support: https://caniuse.com/#search=webrtc
+        const isWebRTCSupported = DetectRTC.isWebRTCSupported && !DetectRTC.browser.isEdge;
 
         emitter.emit("fileStart", {});
         const request = await this.ensureRequest(dto, isWebRTCSupported);
@@ -171,7 +172,7 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
 
         if (isWebRTCSupported) {
             const nodeAddress = this.nextWebRtcNodeAddress(request);
-            if (nodeAddress == null) {
+            if (nodeAddress == null || response.settings == null) {
                 // Fallback to original source
                 console.debug("Fallback to original...");
                 emitter.emit("fileStarted", {});
@@ -220,6 +221,14 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
 
         // Connect to webRTC
         const webrtcClient = new WebrtcDirectClient.Client(nodeAddress, { proxyAddress: proxyControlAddress });
+
+        webrtcClient.on("closed", () => {
+            console.info("closed");
+        });
+        webrtcClient.on("error", error => {
+            console.error("error", error);
+        });
+
         await webrtcClient.connect();
 
         // Send all data
