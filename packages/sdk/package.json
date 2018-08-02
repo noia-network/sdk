@@ -30,7 +30,7 @@
         "ts-deferred": "^1.0.4"
     },
     "devDependencies": {
-        "@noia-network/webrtc-direct-client": "^0.2.3",
+        "@noia-network/webrtc-direct-client": "^0.2.4",
         "@simplrjs/webpack": "0.1.0-alpha.3",
         "declaration-bundler-webpack-plugin": "^1.0.3",
         "detectrtc": "^1.3.6",
