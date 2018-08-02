@@ -25,6 +25,7 @@ interface RequestData {
     deferredResponse: Deferred<MasterResponse>;
     nodes?: NodeClient[];
     lastUsedNodeIndex: number;
+    webRtcNodesAddress?: string[];
     // deferredFallbackHead?: Deferred<any>;
 }
 
@@ -156,19 +157,32 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
         const torrent = response.torrent;
         console.debug(`Torrent has ${torrent.pieces.length} pieces.`);
 
+        request.nodes = [];
+        request.webRtcNodesAddress = [];
+
+        console.debug(`Found ${peers.length} peers.`);
+        for (const peer of peers) {
+            if (isWebRTCSupported) {
+                request.webRtcNodesAddress.push(`http://${peer}`);
+            } else {
+                request.nodes.push(new NodeClient(`ws://${peer}`, this.workerConstructor));
+            }
+        }
+
         if (isWebRTCSupported) {
+            const nodeAddress = this.nextWebRtcNodeAddress(request);
+            if (nodeAddress == null) {
+                // Fallback to original source
+                console.debug("Fallback to original...");
+                emitter.emit("fileStarted", {});
+                emitter.emit("fileDone", await this.fallback(dto));
+                return;
+            }
             const proxyControlAddress = response.settings.proxyControlAddress;
-            await this.downloadPiecesFromWebRTC(peers, proxyControlAddress, torrent, emitter);
+            await this.downloadPiecesFromWebRTC(nodeAddress, proxyControlAddress, torrent, emitter);
             return;
         }
 
-        request.nodes = [];
-
-        for (const peer of peers) {
-            request.nodes.push(new NodeClient(`ws://${peer}`, this.workerConstructor));
-        }
-
-        console.debug(`Found ${peers.length} peers.`);
         const piecePromises: Array<Promise<NodeResult>> = [];
         for (let pieceIndex = 0; pieceIndex < torrent.pieces.length; pieceIndex++) {
             // Should never be undefined, because no nodes situation is handled above
@@ -197,14 +211,11 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
     }
 
     public async downloadPiecesFromWebRTC(
-        peers: string[],
+        nodeAddress: string,
         proxyControlAddress: string,
         torrent: TorrentData,
         emitter: NoiaEmitter
     ): Promise<void> {
-        // TODO: Get nextNode from peers array.
-        const nodeAddress = `http://${peers[0]}`;
-
         const piecesFromTorrent = this.generatePiecesFromTorrent(torrent);
 
         // Connect to webRTC
@@ -295,6 +306,20 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
         }
 
         return request.nodes[request.lastUsedNodeIndex];
+    }
+
+    protected nextWebRtcNodeAddress(request: RequestData): string | undefined {
+        if (request.webRtcNodesAddress == null || request.webRtcNodesAddress.length === 0) {
+            return undefined;
+        }
+
+        if (request.lastUsedNodeIndex >= request.webRtcNodesAddress.length - 1) {
+            request.lastUsedNodeIndex = 0;
+        } else {
+            request.lastUsedNodeIndex++;
+        }
+
+        return request.webRtcNodesAddress[request.lastUsedNodeIndex];
     }
 
     protected async fallback(dto: NoiaRequest): Promise<Buffer> {
