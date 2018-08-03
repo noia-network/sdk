@@ -62,28 +62,28 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
                 webRtcPieces.push(webRTCPieceResponse);
             });
             streamer.emitter.addListener("webRtcPieceDone", arrayBuffer => {
-                const buffer = Buffer.from(arrayBuffer);
+                const incomingBuffer = Buffer.from(arrayBuffer);
 
-                const pieceIndex = buffer.readUInt32BE(0);
-                const offset = buffer.readUInt32BE(0 + 4);
-                const infoHash = buffer.toString("hex", 4 + 4, 24 + 4);
-                const data = buffer.slice(24 + 4, buffer.length);
+                const pieceIndex = incomingBuffer.readUInt32BE(0);
+                const offset = incomingBuffer.readUInt32BE(0 + 4);
+                const infoHash = incomingBuffer.toString("hex", 4 + 4, 24 + 4);
+                const data = incomingBuffer.slice(24 + 4, incomingBuffer.length);
 
                 const piece = webRtcPieces.find(x => x.infoHash === infoHash && x.index === pieceIndex && x.offset === offset);
                 if (piece != null) {
                     piece.data = data;
                 }
                 if (webRtcPieces.findIndex(x => x.data == null) === -1) {
-                    const pieceBuffer = new Buffer(fileInfo.contentLength);
+                    const buffer = new Buffer(fileInfo.contentLength);
                     for (const pieceResult of webRtcPieces) {
                         if (pieceResult.data == null) {
                             continue;
                         }
                         for (let index = 0; index < pieceResult.data.length; index++) {
-                            pieceBuffer[index + fileInfo.pieceLength * pieceResult.index] = pieceResult.data[index];
+                            buffer[index + fileInfo.pieceLength * pieceResult.index] = pieceResult.data[index];
                         }
                     }
-                    resolve(pieceBuffer);
+                    resolve(buffer);
                 }
             });
 
@@ -222,6 +222,7 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
 
         // Connect to webRTC
         const webrtcClient = new WebrtcDirectClient.Client(nodeAddress, { proxyAddress: proxyControlAddress });
+        await webrtcClient.connect();
 
         webrtcClient.on("closed", () => {
             console.info("closed");
@@ -229,8 +230,6 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
         webrtcClient.on("error", error => {
             console.error("error", error);
         });
-
-        await webrtcClient.connect();
 
         // Send all data
         webrtcClient.on("connected", () => {
