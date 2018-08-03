@@ -31,7 +31,7 @@ interface RequestData {
 
 export class NoiaClient extends SocketClient implements NoiaClientInterface {
     constructor(protected workerConstructor: () => Worker) {
-        super("wss://webrtc-master.noia.network:6566");
+        super("wss://super-csl-masters.noia.network:5566");
 
         this.socket.addEventListener("message", event => {
             const response = JSON.parse(event.data) as MasterResponse;
@@ -167,7 +167,7 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
             if (isWebRTCSupported) {
                 request.webRtcNodesAddress.push(`http://${peer}`);
             } else {
-                request.nodes.push(new NodeClient(`ws://${peer}`, this.workerConstructor));
+                request.nodes.push(new NodeClient(`wss://${peer}`, this.workerConstructor));
             }
         }
 
