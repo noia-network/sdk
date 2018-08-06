@@ -10,7 +10,7 @@
     "scripts": {
         "pretest": "tsc --noEmit",
         "test": "prettier --config .prettierrc --loglevel warn --list-different src/**/*",
-        "build": "tsc -p ./tools && webpack",
+        "build": "tsc -p . && tsc -p ./tools && webpack",
         "build:browser": "tsc -p ./tools && webpack --config webpack.browser.js",
         "watch": "tsc -p ./tools && webpack -w",
         "watch:browser": "tsc -p ./tools && webpack-dev-server --config webpack.browser.js --mode=development"
