@@ -1,5 +1,5 @@
 import { EventSubscription } from "fbemitter";
-import { NodeResult, PieceRequest } from "./contracts/node-client";
+import { NodeResult } from "./contracts/node-client";
 
 // tslint:disable-next-line no-any
 export interface Dictionary<TValue = any> {
@@ -11,7 +11,7 @@ export interface NoiaRequest {
 }
 
 export enum ConnectionType {
-    Webrtc = "webrtc",
+    WebRtc = "webrtc",
     Ws = "ws"
 }
 
@@ -59,11 +59,11 @@ export interface NoiaClientEventMap {
     pieceDone: NoiaPieceDto;
     pieceStart: NoiaPieceStartDto;
     allPiecesStarted: {};
-    webRtcPieceStart: WebRTCPieceResponse;
+    webRtcPieceStart: WebRtcPieceResponse;
     webRtcPieceDone: ArrayBuffer;
 }
 
-export interface WebRTCPieceResponse {
+export interface WebRtcPieceResponse {
     index: number;
     infoHash: string;
     offset: number;
