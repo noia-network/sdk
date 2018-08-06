@@ -15,7 +15,7 @@ import { Deferred } from "ts-deferred";
 import { MasterResponse, TorrentData } from "./contracts/master-client";
 import { NodeResult, PieceRequest } from "./contracts/node-client";
 import { NoiaEmitter } from "./noia-emitter";
-import * as DetectRtc from "detectrtc";
+import { IS_WEB_RTC_SUPPORTED } from "./is-webrtc-supported";
 import * as WebRtcDirectClient from "@noia-network/webrtc-direct-client";
 
 const IPFS_PREFIX = "ipfs:";
@@ -131,12 +131,8 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
     }
 
     protected async startStream(dto: NoiaRequest, emitter: NoiaEmitter): Promise<void> {
-        // More info about browser support: https://caniuse.com/#search=webrtc
-        // `Edge` browser excluded, because `Edge` not support `RTCDataChannel`.
-        const isWebRtcSupported = DetectRtc.isWebRTCSupported && !DetectRtc.browser.isEdge;
-
         emitter.emit("fileStart", {});
-        const request = await this.ensureRequest(dto, isWebRtcSupported);
+        const request = await this.ensureRequest(dto);
 
         // Wait for deferred response from socket
         const response = await request.deferredResponse.promise;
@@ -164,14 +160,14 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
 
         console.debug(`Found ${peers.length} peers.`);
         for (const peer of peers) {
-            if (isWebRtcSupported) {
+            if (IS_WEB_RTC_SUPPORTED) {
                 request.webRtcNodesAddress.push(`http://${peer}`);
             } else {
                 request.nodes.push(new NodeClient(`wss://${peer}`, this.workerConstructor));
             }
         }
 
-        if (isWebRtcSupported) {
+        if (IS_WEB_RTC_SUPPORTED) {
             const nodeAddress = this.nextWebRtcNodeAddress(request);
             if (nodeAddress == null || response.settings == null) {
                 // Fallback to original source
@@ -283,7 +279,7 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
         // });
     }
 
-    protected async ensureRequest(dto: NoiaRequest, isWebRtcSupported: boolean): Promise<RequestData> {
+    protected async ensureRequest(dto: NoiaRequest): Promise<RequestData> {
         let request = this.requests[dto.src];
         if (request == null) {
             request = {
@@ -297,7 +293,7 @@ export class NoiaClient extends SocketClient implements NoiaClientInterface {
             masterSocket.send(
                 JSON.stringify({
                     src: dto.src,
-                    connectionType: isWebRtcSupported ? ConnectionType.WebRtc : ConnectionType.Ws
+                    connectionType: IS_WEB_RTC_SUPPORTED ? ConnectionType.WebRtc : ConnectionType.Ws
                 })
             );
         }
