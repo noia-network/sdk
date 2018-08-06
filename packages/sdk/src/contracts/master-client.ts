@@ -36,4 +36,9 @@ export interface MasterResponse {
     client: Client;
     // tslint:disable-next-line:no-any
     nl: any;
+    settings: MasterResponseSettings;
+}
+
+export interface MasterResponseSettings {
+    proxyControlAddress: string;
 }

@@ -1,2 +1,3 @@
 common/temp
 node_modules
+*.log
