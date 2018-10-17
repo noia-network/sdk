@@ -1,8 +1,19 @@
+import { LoggerBuilder } from "simplr-logger";
+
+export interface SocketClientOptions {
+    address: string;
+    logger: LoggerBuilder;
+}
+
 export class SocketClient {
-    constructor(protected address: string) {
+    constructor(options: SocketClientOptions) {
+        this.address = options.address;
+        this.logger = options.logger;
         this.socket = new WebSocket(this.address);
     }
 
+    protected readonly logger: LoggerBuilder;
+    protected readonly address: string;
     protected socket: WebSocket;
     private socketPromise: Promise<WebSocket> | undefined;
 
@@ -10,6 +21,7 @@ export class SocketClient {
         if (this.socketPromise != null) {
             return this.socketPromise;
         }
+
         const socketPromise = new Promise<WebSocket>((resolve, reject) => {
             // If socket is defined and open
             if (this.socket.readyState === WebSocket.OPEN) {

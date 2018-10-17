@@ -1,19 +1,27 @@
+import { LoggerBuilder } from "simplr-logger";
+
 import { SocketClient } from "../abstractions/socket-client";
-import { PieceRequest, NoiaNodeWorkerEvent, NoiaNodeWorkerRequestData, NodeResult } from "../contracts/node-client";
+import { NoiaNodeWorkerEvent, NoiaNodeWorkerRequestData, PieceResult, NodePieceRequest } from "../contracts/node";
 // import * as Worker from "worker-loader!./pieces.worker";
 
 const NUMBER_OF_CORES = (window != null && window.navigator != null && window.navigator.hardwareConcurrency) || 2;
 
 export interface PiecePromiseResolver {
     pieceIndex: number;
-    resolve: (result: NodeResult) => void;
+    resolve: (result: PieceResult) => void;
     reject: (reason: string) => void;
     done: boolean;
 }
 
+export interface NodeClientOptions {
+    nodeAddress: string;
+    workerConstructor: () => Worker;
+    logger: LoggerBuilder;
+}
+
 export class NodeClient extends SocketClient {
-    constructor(nodeAddress: string, workerConstructor: () => Worker) {
-        super(nodeAddress);
+    constructor({ nodeAddress, logger, workerConstructor }: NodeClientOptions) {
+        super({ address: nodeAddress, logger: logger });
 
         this.workers = [];
 
@@ -27,7 +35,7 @@ export class NodeClient extends SocketClient {
                 const pieceResolver = this.piecePromiseResolvers.find(x => x.pieceIndex === data.index);
 
                 if (pieceResolver == null) {
-                    console.warn(
+                    this.logger.Warn(
                         `Piece #${data.index} was processed, but there were only ${this.piecePromiseResolvers.length} piece requests.`
                     );
                     return;
@@ -45,7 +53,7 @@ export class NodeClient extends SocketClient {
             const worker = this.nextWorker();
 
             if (worker == null) {
-                console.warn("No workers found.");
+                this.logger.Warn("No workers found.");
                 return;
             }
 
@@ -63,8 +71,8 @@ export class NodeClient extends SocketClient {
         return this.piecePromiseResolvers.some(x => !x.done);
     }
 
-    public async downloadPiece(pieceRequest: PieceRequest): Promise<NodeResult> {
-        return new Promise<NodeResult>(async (resolve, reject) => {
+    public async downloadPiece(pieceRequest: NodePieceRequest): Promise<PieceResult> {
+        return new Promise<PieceResult>(async (resolve, reject) => {
             const clientSocket = await this.connect();
 
             const piecePromiseResolver: PiecePromiseResolver = {

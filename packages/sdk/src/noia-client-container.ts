@@ -1,6 +1,6 @@
 import { NoiaClient } from "./noia-client";
 
-class NoiaClientContainerClass {
+export class NoiaClientContainerClass {
     private instance: NoiaClient | undefined;
 
     public initialize(newHandler: NoiaClient): void {

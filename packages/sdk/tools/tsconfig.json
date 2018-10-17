@@ -11,7 +11,7 @@
         "pretty": true,
         "strict": true,
         "lib": ["es6", "dom"],
-        "typeRoots": ["../node_modules/@types", "@types"]
+        "typeRoots": ["@types"]
     },
     "exclude": ["node_modules"]
 }

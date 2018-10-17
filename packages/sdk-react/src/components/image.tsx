@@ -63,9 +63,11 @@ export class Image extends React.Component<ImageProps, ImageState> {
   }
 
   public async componentDidMount(): Promise<void> {
-    const bytes = await NoiaClientContainer.getClient().download({
+    const client = NoiaClientContainer.getClient();
+    const stream = await client.openStream({
       src: this.props.src
     });
+    const bytes = await stream.getAllBytes();
 
     this.setState({
       base64: Helpers.bytesToBase64(bytes)
