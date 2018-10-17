@@ -1,3 +1,5 @@
+import { ResultStatus } from "../contracts/worker";
+
 // tslint:disable-next-line:no-any
 const ctx = (self as any) as Worker;
 
@@ -8,6 +10,20 @@ addEventListener("message", event => {
 
     async function onLoadEnd(e: ProgressEvent): Promise<void> {
         reader.removeEventListener("loadend", onLoadEnd, false);
+        if (reader.result == null) {
+            ctx.postMessage({
+                status: ResultStatus.Error
+            });
+            return;
+        }
+
+        if (typeof reader.result !== "string") {
+            ctx.postMessage({
+                status: ResultStatus.Error
+            });
+            return;
+        }
+
         const buffer = Buffer.from(reader.result);
         const pieceIndex = buffer.readUInt32BE(0);
         const offset = buffer.readUInt32BE(0 + 4);
@@ -18,7 +34,8 @@ addEventListener("message", event => {
             index: pieceIndex,
             infoHash: infoHash,
             offset: offset,
-            data: data
+            data: data,
+            status: ResultStatus.Success
         });
     }
 

@@ -1,12 +1,17 @@
-export interface PieceRequest {
+export interface NodePieceRequest {
     infoHash: string;
     piece: number;
     offset: number;
     length: number;
 }
 
+export interface NodeBytesRequest {
+    start: number;
+    length: number;
+}
+
 export interface NoiaNodeWorkerRequestData {
-    pieceIndex: never;
+    pieceIndex: number;
     // tslint:disable-next-line:no-any
     blob: any;
 }
@@ -27,7 +32,7 @@ export interface NoiaNodeWorkerEvent extends MessageEvent {
     data: NoiaNodeWorkerData;
 }
 
-export interface NodeResult {
+export interface PieceResult {
     index: number;
     /**
      * Piece hash for integrity checking.

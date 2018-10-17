@@ -1,396 +1,116 @@
-import {
-    NoiaClient as NoiaClientInterface,
-    NoiaRequest,
-    NoiaPieceRequest,
-    Dictionary,
-    NoiaPieceStartDto,
-    NoiaStreamDto,
-    FileInfo,
-    ConnectionType,
-    WebRtcPieceResponse
-} from "./contracts";
-import { SocketClient } from "./abstractions/socket-client";
+import { LoggerBuilder, LogLevel } from "simplr-logger";
+import { ConsoleMessageHandler } from "simplr-logger/handlers";
 import { NodeClient } from "./clients/node";
-import { Deferred } from "ts-deferred";
-import { MasterResponse, TorrentData } from "./contracts/master-client";
-import { NodeResult, PieceRequest } from "./contracts/node-client";
-import { NoiaEmitter } from "./noia-emitter";
-import { IS_WEB_RTC_SUPPORTED } from "./is-webrtc-supported";
-import * as WebRtcDirectClient from "@noia-network/webrtc-direct-client";
+import { MasterClient } from "./clients/master-client";
+import { NoiaRequest, ConnectionType } from "./contracts/master";
+import { NoiaStreamDto, NoiaClient as NoiaClientInterface } from "./contracts/sdk";
+import { WebRtcPool } from "./clients/webrtc/webrtc-pool";
+import { WebRtcClient } from "./clients/webrtc/webrtc-client";
+import { WorkersPool } from "./workers/workers-pool";
+import { DefaultWorker } from "./workers/default-worker";
+import { NoiaStream } from "./noia-stream";
+import { cache } from "./clients/pieces-cache";
 
-const IPFS_PREFIX = "ipfs:";
-
-interface RequestData {
-    src: string;
-    deferredResponse: Deferred<MasterResponse>;
-    nodes?: NodeClient[];
-    lastUsedNodeIndex: number;
-    webRtcNodesAddress?: string[];
-    // deferredFallbackHead?: Deferred<any>;
+export interface NoiaClientOptions {
+    pieceWorkerConstructor: () => Worker;
+    sha1WorkerConstructor: (id: string) => Worker;
+    masterUrl?: string;
+    logger?: LoggerBuilder;
 }
 
-export class NoiaClient extends SocketClient implements NoiaClientInterface {
-    constructor(protected workerConstructor: () => Worker) {
-        super("wss://super-csl-masters.noia.network:5566");
+const DEFAULT_MASTER_ADDRESS = "wss://csl-masters.noia.network:5566";
+// const DEFAULT_MASTER_ADDRESS = "wss://blockchain.noia.network:5566";
 
-        this.socket.addEventListener("message", event => {
-            const response = JSON.parse(event.data) as MasterResponse;
-            const src = response.src;
-            const request = this.requests[src];
-            request.deferredResponse.resolve(response);
-        });
-    }
-
-    protected requests: Dictionary<RequestData> = {};
-    protected nodes: NodeClient[] = [];
-    protected lastUsedNodeIndex: number = 0;
-
-    public async download(dto: NoiaRequest): Promise<Buffer> {
-        const streamer = this.stream(dto);
-
-        const result = new Promise<Buffer>(async (resolve, reject) => {
-            // HTTP
-            streamer.emitter.addListener("fileDone", buffer => {
-                resolve(buffer);
-            });
-
-            let fileInfo: FileInfo;
-
-            // WebRTC
-            const webRtcPieces: WebRtcPieceResponse[] = [];
-            streamer.emitter.addListener("webRtcPieceStart", webRtcPieceResponse => {
-                webRtcPieces.push(webRtcPieceResponse);
-            });
-            streamer.emitter.addListener("webRtcPieceDone", arrayBuffer => {
-                const incomingBuffer = Buffer.from(arrayBuffer);
-
-                const pieceIndex = incomingBuffer.readUInt32BE(0);
-                const offset = incomingBuffer.readUInt32BE(0 + 4);
-                const infoHash = incomingBuffer.toString("hex", 4 + 4, 24 + 4);
-                const data = incomingBuffer.slice(24 + 4, incomingBuffer.length);
-
-                const piece = webRtcPieces.find(x => x.infoHash === infoHash && x.index === pieceIndex && x.offset === offset);
-                if (piece != null) {
-                    piece.data = data;
-                }
-                if (webRtcPieces.findIndex(x => x.data == null) === -1) {
-                    const buffer = new Buffer(fileInfo.contentLength);
-                    for (const pieceResult of webRtcPieces) {
-                        if (pieceResult.data == null) {
-                            continue;
-                        }
-                        for (let index = 0; index < pieceResult.data.length; index++) {
-                            buffer[index + fileInfo.pieceLength * pieceResult.index] = pieceResult.data[index];
-                        }
+export class NoiaClient implements NoiaClientInterface {
+    constructor(options: NoiaClientOptions) {
+        if (options.logger != null) {
+            this.logger = options.logger;
+        } else {
+            this.logger = new LoggerBuilder({
+                DefaultLogLevel: {
+                    LogLevel: LogLevel.Trace,
+                    LogLevelIsBitMask: false
+                },
+                WriteMessageHandlers: [
+                    {
+                        Handler: new ConsoleMessageHandler(),
+                        LogLevel:
+                            LogLevel.Critical | LogLevel.Debug | LogLevel.Information | LogLevel.Error | LogLevel.Trace | LogLevel.Warning,
+                        // LogLevel.None,
+                        LogLevelIsBitMask: true
                     }
-                    resolve(buffer);
-                }
+                ]
             });
+        }
 
-            // WebSockets
-            const piecesPromises: Array<Promise<NodeResult>> = [];
-            streamer.emitter.addListener("pieceStart", pieceStartDto => {
-                piecesPromises[pieceStartDto.index] = pieceStartDto.promise;
-            });
-
-            streamer.emitter.addListener("allPiecesStarted", async _ => {
-                await Promise.all(piecesPromises);
-
-                const buffer = new Buffer(fileInfo.contentLength);
-                for (const piecePromise of piecesPromises) {
-                    const pieceResult = await piecePromise;
-                    if (pieceResult == null) {
-                        continue;
-                    }
-
-                    for (let index = 0; index < pieceResult.data.length; index++) {
-                        buffer[index + fileInfo.pieceLength * pieceResult.index] = pieceResult.data[index];
-                    }
-                }
-
-                resolve(buffer);
-            });
-
-            // Wait for file info to arrive
-            fileInfo = await streamer.emitter.fileInfo;
+        this.masterClient = new MasterClient({
+            masterAddress: options.masterUrl || DEFAULT_MASTER_ADDRESS,
+            logger: this.logger
         });
 
-        streamer.start();
-        return result;
-    }
-
-    public stream(dto: NoiaRequest): NoiaStreamDto {
-        const emitter = new NoiaEmitter();
-
-        return {
-            emitter: emitter,
-            start: () => {
-                this.startStream(dto, emitter);
-            }
-        };
-    }
-
-    protected async startStream(dto: NoiaRequest, emitter: NoiaEmitter): Promise<void> {
-        emitter.emit("fileStart", {});
-        const request = await this.ensureRequest(dto);
-
-        // Wait for deferred response from socket
-        const response = await request.deferredResponse.promise;
-
-        emitter.emit("fileInfo", {
-            contentLength: response.torrent.length,
-            pieceLength: response.torrent.pieceLength,
-            piecesCount: response.torrent.pieces != null ? response.torrent.pieces.length : 0
-        } as FileInfo);
-
-        const peers = Object.keys(response.peers);
-        if (peers.length === 0) {
-            // Fallback to original source
-            console.debug("Fallback to original...");
-            emitter.emit("fileStarted", {});
-            emitter.emit("fileDone", await this.fallback(dto));
-            return;
-        }
-
-        const torrent = response.torrent;
-        console.debug(`Torrent has ${torrent.pieces.length} pieces.`);
-
-        request.nodes = [];
-        request.webRtcNodesAddress = [];
-
-        console.debug(`Found ${peers.length} peers.`);
-        for (const peer of peers) {
-            if (IS_WEB_RTC_SUPPORTED) {
-                request.webRtcNodesAddress.push(`http://${peer}`);
-            } else {
-                request.nodes.push(new NodeClient(`wss://${peer}`, this.workerConstructor));
-            }
-        }
-
-        if (IS_WEB_RTC_SUPPORTED) {
-            const nodeAddress = this.nextWebRtcNodeAddress(request);
-            if (nodeAddress == null || response.settings == null) {
-                // Fallback to original source
-                console.debug("Fallback to original...");
-                emitter.emit("fileStarted", {});
-                emitter.emit("fileDone", await this.fallback(dto));
-                return;
-            }
-            const proxyControlAddress = response.settings.proxyControlAddress;
-            await this.downloadPiecesFromWebRtc(nodeAddress, proxyControlAddress, torrent, emitter);
-            return;
-        }
-
-        const piecePromises: Array<Promise<NodeResult>> = [];
-        for (let pieceIndex = 0; pieceIndex < torrent.pieces.length; pieceIndex++) {
-            // Should never be undefined, because no nodes situation is handled above
-            const node = this.nextNode(request)!;
-
-            let length = torrent.pieceLength;
-            if (pieceIndex === torrent.pieces.length - 1) {
-                length = torrent.lastPieceLength;
-            }
-
-            const piecePromise = node.downloadPiece({
-                infoHash: torrent.infoHash,
-                piece: pieceIndex,
-                offset: 0,
-                length: length
-            });
-            const pieceStartDto: NoiaPieceStartDto = {
-                index: pieceIndex,
-                promise: piecePromise
-            };
-            emitter.emit("pieceStart", pieceStartDto);
-            piecePromises.push(piecePromise);
-        }
-
-        emitter.emit("allPiecesStarted", {});
-    }
-
-    public async downloadPiecesFromWebRtc(
-        nodeAddress: string,
-        proxyControlAddress: string,
-        torrent: TorrentData,
-        emitter: NoiaEmitter
-    ): Promise<void> {
-        const piecesFromTorrent = this.generatePiecesFromTorrent(torrent);
-
-        // Connect to webRTC
-        const webRtcClient = new WebRtcDirectClient.Client(nodeAddress, { proxyAddress: proxyControlAddress });
-        await webRtcClient.connect();
-
-        webRtcClient.on("closed", () => {
-            console.info("closed");
-        });
-        webRtcClient.on("error", error => {
-            console.error("error", error);
+        this.webRtcPool = new WebRtcPool({
+            logger: this.logger
         });
 
-        // Send all data
-        webRtcClient.on("connected", () => {
-            for (const pieceFromTorrent of piecesFromTorrent) {
-                webRtcClient.send(JSON.stringify(pieceFromTorrent));
-                emitter.emit("webRtcPieceStart", {
-                    index: pieceFromTorrent.piece,
-                    infoHash: pieceFromTorrent.infoHash,
-                    offset: pieceFromTorrent.offset
+        this.pieceWorkersPool = new WorkersPool<DefaultWorker>({
+            logger: this.logger,
+            workerConstructor: (id: string) => {
+                const constructedWorker = options.pieceWorkerConstructor();
+                return new DefaultWorker({
+                    logger: this.logger,
+                    id: id,
+                    releaseWorker: releaseId => {
+                        this.pieceWorkersPool.releaseWorker(releaseId);
+                    },
+                    worker: constructedWorker
                 });
             }
         });
 
-        // Get all data
-        webRtcClient.on("data", arrayBuffer => {
-            emitter.emit("webRtcPieceDone", arrayBuffer);
-        });
-    }
-
-    public generatePiecesFromTorrent(torrent: TorrentData): PieceRequest[] {
-        const pieces: PieceRequest[] = [];
-        for (let pieceIndex = 0; pieceIndex < torrent.pieces.length; pieceIndex++) {
-            let length = torrent.pieceLength;
-            if (pieceIndex === torrent.pieces.length - 1) {
-                length = torrent.lastPieceLength;
-            }
-
-            const piece: PieceRequest = {
-                infoHash: torrent.infoHash,
-                offset: 0,
-                piece: pieceIndex,
-                length: length
-            };
-            pieces.push(piece);
-        }
-        return pieces;
-    }
-
-    public async downloadPiece(dto: NoiaPieceRequest): Promise<Buffer> {
-        // await this.fallbackPiece(dto);
-        throw new Error("Not implemented 24.");
-        // return new Promise<Buffer>(async resolve => {
-        //     let request = this.requests[dto.src];
-        //     if (request != null) {
-        //         return await request.promise;
-        //     }
-
-        //     const masterSocket = await this.connect();
-
-        //     masterSocket.send(JSON.stringify(dto));
-        // });
-    }
-
-    protected async ensureRequest(dto: NoiaRequest): Promise<RequestData> {
-        let request = this.requests[dto.src];
-        if (request == null) {
-            request = {
-                src: dto.src,
-                deferredResponse: new Deferred<MasterResponse>(),
-                lastUsedNodeIndex: 0
-            };
-            this.requests[dto.src] = request;
-            const masterSocket = await this.connect();
-            // Send request to master
-            masterSocket.send(
-                JSON.stringify({
-                    src: dto.src,
-                    connectionType: IS_WEB_RTC_SUPPORTED ? ConnectionType.WebRtc : ConnectionType.Ws
-                })
-            );
-        }
-        return request;
-    }
-
-    protected nextNode(request: RequestData): NodeClient | undefined {
-        if (request.nodes == null || request.nodes.length === 0) {
-            return undefined;
-        }
-
-        if (request.lastUsedNodeIndex >= request.nodes.length - 1) {
-            request.lastUsedNodeIndex = 0;
-        } else {
-            request.lastUsedNodeIndex++;
-        }
-
-        return request.nodes[request.lastUsedNodeIndex];
-    }
-
-    protected nextWebRtcNodeAddress(request: RequestData): string | undefined {
-        if (request.webRtcNodesAddress == null || request.webRtcNodesAddress.length === 0) {
-            return undefined;
-        }
-
-        if (request.lastUsedNodeIndex >= request.webRtcNodesAddress.length - 1) {
-            request.lastUsedNodeIndex = 0;
-        } else {
-            request.lastUsedNodeIndex++;
-        }
-
-        return request.webRtcNodesAddress[request.lastUsedNodeIndex];
-    }
-
-    protected async fallback(dto: NoiaRequest): Promise<Buffer> {
-        let url = dto.src;
-
-        if (url.startsWith(IPFS_PREFIX)) {
-            const ipfsHash = url.substr(IPFS_PREFIX.length);
-            url = `https://ipfs.infura.io/ipfs/${ipfsHash}`;
-        }
-        const fetchResult = await fetch(url);
-
-        return new Buffer(await fetchResult.arrayBuffer());
-    }
-
-    protected async fallbackPiece(dto: NoiaPieceRequest, pieceLength = 16384): Promise<Buffer> {
-        let url = dto.src;
-
-        if (url.startsWith(IPFS_PREFIX)) {
-            const ipfsHash = url.substr(IPFS_PREFIX.length);
-            url = `https://ipfs.infura.io/ipfs/${ipfsHash}`;
-        }
-
-        // const request = new Request(`https://cors-anywhere.herokuapp.com/${url}`, {
-        //     method: "HEAD",
-        //     headers: {
-        //         "Access-Control-Expose-Headers": "content-length"
-        //     }
-        // });
-        // const headFetchResult = await fetch(request);
-        // const contentLengthString = headFetchResult.headers.get("content-length");
-
-        // if (contentLengthString == null) {
-        //     throw new Error("Fallback request did not return content-length header.");
-        // }
-
-        // const contentLength = Number(contentLengthString);
-
-        const fetchResult = await fetch(url, {
-            headers: {
-                // Range: "bytes=<START_RANGE>-<END_RANGE>/<TOTAL>"
-                Range: `bytes=${dto.pieceIndex * pieceLength}-${(dto.pieceIndex + 1) * pieceLength - 1}`
+        this.sha1WorkersPool = new WorkersPool<DefaultWorker>({
+            logger: this.logger,
+            workerConstructor: (id: string) => {
+                const constructedWorker = options.sha1WorkerConstructor(id);
+                return new DefaultWorker({
+                    worker: constructedWorker,
+                    id: id,
+                    releaseWorker: releaseId => {
+                        this.sha1WorkersPool.releaseWorker(releaseId);
+                    },
+                    logger: this.logger
+                });
             }
         });
-        console.debug(fetchResult.headers);
-        console.debug(fetchResult);
-        console.debug(fetchResult.headers.get("content-length"));
-        console.debug(await fetchResult.arrayBuffer());
+    }
 
-        // var xhr = new XMLHttpRequest();
+    protected readonly logger: LoggerBuilder;
+    protected masterClient: MasterClient;
+    protected webRtcPool: WebRtcPool;
+    protected pieceWorkersPool: WorkersPool<DefaultWorker>;
+    protected sha1WorkersPool: WorkersPool<DefaultWorker>;
+    protected nodes: NodeClient[] = [];
+    protected lastUsedNodeIndex: number = 0;
 
-        // xhr.onreadystatechange = function() {
-        //     if (xhr.readyState !== 4) {
-        //         return;
-        //     }
-        //     console.log(this.getAllResponseHeaders());
-        //     console.log(this.getResponseHeader("content-range"));
-        // };
+    public async openStream(request: NoiaRequest): Promise<NoiaStreamDto> {
+        const metadata = await this.masterClient.getMetadata({
+            src: request.src,
+            connectionType: ConnectionType.WebRtc
+        });
 
-        // xhr.open("GET", url, true);
-        // xhr.setRequestHeader("Range", "bytes=100-200"); // the bytes (incl.) you request
-        // xhr.send(null);
+        const webRtcClient = new WebRtcClient({
+            cache: cache,
+            webRtcPool: this.webRtcPool,
+            sha1Pool: this.sha1WorkersPool,
+            metadata: metadata,
+            src: request.src,
+            logger: this.logger
+        });
 
-        // TODO: Fix this...
-        // tslint:disable-next-line no-any
-        // return ((await fetchResult.arrayBuffer()) as any) as Buffer;
-        throw new Error();
+        return new NoiaStream({
+            metadata: metadata,
+            request: request,
+            webRtcClient: webRtcClient,
+            logger: this.logger
+        });
     }
 }

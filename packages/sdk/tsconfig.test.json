@@ -5,17 +5,16 @@
         "rootDir": "src",
         "outDir": "dist",
         "declaration": true,
-        "inlineSourceMap": true,
-        "inlineSources": true,
         "lib": ["dom", "es2015"],
-        "types": ["node", "jest"],
+        "types": ["node", "jest", "typescript"],
         "plugins": [
             {
                 "name": "tslint-language-service",
                 "alwaysShowRuleFailuresAsWarnings": true,
                 "ignoreDefinitionFiles": true
             }
-        ]
+        ],
+        "baseUrl": "./src"
     },
     "exclude": ["tools", "dist"]
 }

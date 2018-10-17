@@ -3,3 +3,4 @@ dist
 dist_browser
 webpack.config.js
 webpack.browser.js
+coverage
