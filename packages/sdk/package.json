@@ -1,6 +1,6 @@
 {
     "name": "@noia-network/sdk",
-    "version": "2.0.0-beta.2",
+    "version": "2.0.0-beta.3",
     "publishConfig": {
         "tag": "beta"
     },
@@ -58,16 +58,16 @@
     "dependencies": {
         "@types/fbemitter": "^2.0.32",
         "@types/node": "^10.11.4",
+        "@types/shortid": "0.0.29",
         "shortid": "2.2.13",
         "simple-sha1": "^2.1.1",
         "simplr-logger": "1.0.1",
+        "@noia-network/webrtc-direct-client": "1.0.1-rc.2",
         "ts-deferred": "^1.0.4"
     },
     "devDependencies": {
-        "@noia-network/webrtc-direct-client": "^0.2.14",
         "@simplrjs/webpack": "0.1.0-alpha.14",
         "@types/jest": "^23.3.1",
-        "@types/shortid": "0.0.29",
         "declaration-bundler-webpack-plugin": "^1.0.3",
         "detectrtc": "^1.3.6",
         "jest": "^23.5.0",

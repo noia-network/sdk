@@ -42,8 +42,8 @@ export class WebRtcClient extends ClientBase {
             });
             const pieceIndex = pieceRequest.piece;
             const integritySha1 = this.metadata.torrent.pieces[pieceIndex];
-            client.addListener("data", async (message: Buffer) => {
-                const pieceResult = await this.handleData(message, pieceIndex, integritySha1);
+            client.addListener("data", async message => {
+                const pieceResult = await this.handleData(message as Buffer, pieceIndex, integritySha1);
                 resolve(pieceResult);
             });
             this.logger.Debug(`Sending request to client...`, pieceRequest);
