@@ -1,36 +1,56 @@
-import { MasterResponse, NoiaRequest } from "./contracts/master";
+import { NoiaRequest, MasterData, ConnectionType } from "./contracts/master";
 import { WebRtcClient } from "./clients/webrtc/webrtc-client";
 import { NodeBytesRequest, PieceResult, NodePieceRequest } from "./contracts/node";
 import { LoggerBuilder } from "simplr-logger";
 import { NoiaStreamDto } from "./contracts/sdk";
+import { WebSocketClient } from "./clients/websocket/websocket-client";
+import { MasterClient } from "./clients/master-client";
+import { ClientBase } from "./abstractions/client-base";
 
 export interface NoiaStreamOptions {
-    metadata: MasterResponse;
+    masterData: MasterData;
+    masterClient: MasterClient;
     request: NoiaRequest;
     webRtcClient: WebRtcClient;
+    webSocketClient: WebSocketClient;
     logger: LoggerBuilder;
 }
 
 export class NoiaStream implements NoiaStreamDto {
     constructor(options: NoiaStreamOptions) {
-        this.metadata = options.metadata;
+        this.masterData = options.masterData;
+        this.masterClient = options.masterClient;
         this.request = options.request;
         this.webRtcClient = options.webRtcClient;
+        this.webSocketClient = options.webSocketClient;
         this.logger = options.logger;
     }
 
-    public metadata: MasterResponse;
+    public masterData: MasterData;
+    public masterClient: MasterClient;
     protected request: NoiaRequest;
     protected webRtcClient: WebRtcClient;
+    protected webSocketClient: WebSocketClient;
     protected logger: LoggerBuilder;
 
+    protected async getClient(): Promise<ClientBase> {
+        if (await this.masterClient.hasMetadata(this.masterData.src, ConnectionType.WebRtc)) {
+            return this.webRtcClient;
+        }
+        if (await this.masterClient.hasMetadata(this.masterData.src, ConnectionType.Wss)) {
+            return this.webSocketClient;
+        }
+        throw new Error("No available clients for supported connection types were found.");
+    }
+
     public async getPiece(pieceRequest: NodePieceRequest): Promise<PieceResult> {
-        return this.webRtcClient.getPiece(pieceRequest);
+        const client = await this.getClient();
+        return client.getPiece(pieceRequest);
     }
 
     public async getBytes(bytesRequest: NodeBytesRequest): Promise<Buffer> {
         const timeStart = performance.now();
-        const { pieceLength: pieceBufferLength, length: bufferLength, infoHash: contentId } = this.metadata.torrent;
+        const { pieceBufferLength, bufferLength, contentId } = this.masterData.metadata;
 
         if (bytesRequest.start > bufferLength) {
             this.logger.Warn(`Start is ${bytesRequest.start}, but the bufferLength is ${bufferLength}.`);
@@ -39,13 +59,14 @@ export class NoiaStream implements NoiaStreamDto {
 
         const pieceIndexes = this.bytesRequestToPieceIndexes(bytesRequest, pieceBufferLength);
 
+        const client = await this.getClient();
+
         const promises: Array<Promise<PieceResult>> = [];
         for (let pieceIndex = pieceIndexes.starting; pieceIndex <= pieceIndexes.ending; pieceIndex++) {
-            const promise = this.webRtcClient.getPiece({
-                infoHash: contentId,
-                length: pieceBufferLength,
+            const promise = client.getPiece({
+                contentId: contentId,
                 offset: 0,
-                piece: pieceIndex
+                index: pieceIndex
             });
             promises.push(promise);
         }
@@ -55,7 +76,9 @@ export class NoiaStream implements NoiaStreamDto {
             return new Buffer([]);
         }
 
-        const piecesBuffer = Buffer.concat(pieces.map(x => x.data));
+        this.logger.Debug(`pieces`, pieces);
+
+        const piecesBuffer = Buffer.concat(pieces.map(x => x.buffer));
         const globalOffset = pieceIndexes.starting * pieceBufferLength;
         const resultStartingByte = bytesRequest.start - globalOffset;
         const resultEndingByte = bytesRequest.start + bytesRequest.length - globalOffset;
@@ -80,17 +103,18 @@ export class NoiaStream implements NoiaStreamDto {
     }
 
     public async getAllBytes(): Promise<Buffer> {
-        const { torrent } = this.metadata;
+        const { metadata } = this.masterData;
+        const client = await this.getClient();
 
         const promises: Array<Promise<PieceResult>> = [];
-        this.logger.Debug(`Pieces count: ${torrent.pieces.length}`);
-        for (let index = 0; index < torrent.pieces.length; index++) {
-            if (torrent.pieces.hasOwnProperty(index)) {
-                const piecePromise = this.webRtcClient.getPiece({
-                    infoHash: torrent.infoHash,
-                    length: torrent.pieceLength,
+        this.logger.Debug(`Pieces count: ${metadata.piecesIntegrity.length}`);
+
+        for (let index = 0; index < metadata.piecesIntegrity.length; index++) {
+            if (metadata.piecesIntegrity.hasOwnProperty(index)) {
+                const piecePromise = client.getPiece({
+                    contentId: metadata.contentId,
                     offset: 0,
-                    piece: index
+                    index: index
                 });
                 promises.push(piecePromise);
             }
@@ -98,20 +122,19 @@ export class NoiaStream implements NoiaStreamDto {
         this.logger.Debug(`Promises count: ${promises.length}`);
 
         const pieces: PieceResult[] = await Promise.all(promises);
-        return Buffer.concat(pieces.map(x => x.data));
+        return Buffer.concat(pieces.map(x => x.buffer));
     }
 
     public bufferPieces(startingPieceIndex: number, numberOfPiecesToBuffer: number): void {
         for (let pieceIndex = startingPieceIndex; pieceIndex < startingPieceIndex + numberOfPiecesToBuffer; pieceIndex++) {
-            if (pieceIndex > this.metadata.torrent.pieces.length - 1) {
+            if (pieceIndex > this.masterData.metadata.piecesIntegrity.length - 1) {
                 return;
             }
             // Just get piece without awaiting.
             this.getPiece({
-                infoHash: this.metadata.torrent.infoHash,
-                length: this.metadata.torrent.pieceLength,
+                contentId: this.masterData.metadata.contentId,
                 offset: 0,
-                piece: pieceIndex
+                index: pieceIndex
             });
         }
     }

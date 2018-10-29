@@ -2,7 +2,6 @@ import * as WebRtcDirectClient from "@noia-network/webrtc-direct-client";
 import { PoolPeerBase, PoolPeerReleaseHandler } from "../../abstractions/pool-peer-base";
 import { LoggerBuilder } from "simplr-logger";
 import { Deferred } from "ts-deferred";
-import { Pool } from "../../contracts/pools";
 
 export interface WebRtcPeerOptions {
     address: string;

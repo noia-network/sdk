@@ -75,8 +75,6 @@ export abstract class PeersPool<TPeer extends PoolPeer, TPeerSettings = never> i
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const peer = this.peers[key];
-            // for (const address of fileAddresses) {
-            // const peer = this.peers[address];
             if (peer.isReserved()) {
                 continue;
             }

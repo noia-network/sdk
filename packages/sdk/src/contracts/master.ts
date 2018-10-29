@@ -1,96 +1,62 @@
-export interface MasterResponse {
-    src: string;
-    peers: { [peer: string]: string };
-    torrent: TorrentData;
-    client: Client;
-    // tslint:disable-next-line:no-any
-    nl: any;
-    settings: MasterResponseSettings;
+export const enum ConnectionType {
+    WebRtc = "webrtc",
+    Wss = "wss",
+    Ws = "ws"
 }
 
-export interface Client {
-    ip: string;
-    infoHash: string;
-    originalSource: string;
-    location: Location;
+export interface MasterRequest extends NoiaRequest {
+    connectionTypes: ConnectionType[];
+}
+
+export interface MasterResponse<TData extends {} = MasterData> {
+    data: TData;
+    status: number;
+}
+
+export interface Metadata {
+    bufferLength: number;
+    contentId: string;
+    pieceBufferLength: number;
+    piecesIntegrity: string[];
 }
 
 export interface Location {
-    latitude: string;
-    longitude: string;
-    country: string;
     city: string;
+    countryCode: string;
+    latitude: number;
+    longitude: number;
 }
 
-export interface TorrentData {
-    infoHash: string;
-    name: string;
-    urlList: string[];
-    files: File[];
-    length: number;
-    pieceLength: number;
-    lastPieceLength: number;
-    pieces: string[];
+export interface Ports {
+    webrtc: number | null;
+    ws: number | null;
+    wss: number | null;
 }
 
-export interface MasterResponseSettings {
+export interface Peer {
+    host: string;
+    location: Location;
+    ports: Ports;
+    secretKey: string;
+}
+
+export interface Settings {
     proxyControlAddress: string;
 }
 
-export const enum ConnectionType {
-    WebRtc = "webrtc",
-    Wss = "wss"
+export interface MasterData {
+    metadata: Metadata;
+    peers: Peer[];
+    settings: Settings;
+    src: string;
 }
 
 export interface NoiaRequest {
     src: string;
 }
 
-export interface MasterRequest extends NoiaRequest {
-    connectionType: ConnectionType;
-}
-
 export interface FileData {
     src: string;
     // infoHash: string;
     // originalSource?: string;
-}
-
-export interface Location {
-    latitude: string;
-    longitude: string;
-    country: string;
-    city: string;
-}
-
-export interface Client {
-    ip: string;
-    infoHash: string;
-    originalSource: string;
-    location: Location;
-}
-
-export interface TorrentData {
-    infoHash: string;
-    name: string;
-    urlList: string[];
-    files: File[];
-    length: number;
-    pieceLength: number;
-    lastPieceLength: number;
-    pieces: string[];
-}
-
-export interface MasterResponse {
-    src: string;
-    peers: { [peer: string]: string };
-    torrent: TorrentData;
-    client: Client;
-    // tslint:disable-next-line:no-any
-    nl: any;
-    settings: MasterResponseSettings;
-}
-
-export interface MasterResponseSettings {
-    proxyControlAddress: string;
 }

@@ -1,8 +1,7 @@
 export interface NodePieceRequest {
-    infoHash: string;
-    piece: number;
+    contentId: string;
+    index: number;
     offset: number;
-    length: number;
 }
 
 export interface NodeBytesRequest {
@@ -37,7 +36,7 @@ export interface PieceResult {
     /**
      * Piece hash for integrity checking.
      */
-    infoHash: string;
+    contentId: string;
     offset: number;
-    data: Buffer;
+    buffer: Buffer;
 }
