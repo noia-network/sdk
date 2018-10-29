@@ -1,4 +1,4 @@
-import { NoiaRequest, MasterResponse } from "./master";
+import { NoiaRequest, MasterData } from "./master";
 import { NodePieceRequest, PieceResult, NodeBytesRequest } from "./node";
 
 // tslint:disable-next-line no-any
@@ -7,7 +7,7 @@ export interface Dictionary<TValue = any> {
 }
 
 export interface NoiaStreamDto {
-    metadata: MasterResponse;
+    masterData: MasterData;
     getPiece(request: NodePieceRequest): Promise<PieceResult>;
     getBytes(request: NodeBytesRequest): Promise<Buffer>;
     getAllBytes(): Promise<Buffer>;

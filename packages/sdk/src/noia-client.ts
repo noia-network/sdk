@@ -1,6 +1,5 @@
 import { LoggerBuilder, LogLevel } from "simplr-logger";
 import { ConsoleMessageHandler } from "simplr-logger/handlers";
-import { NodeClient } from "./clients/node";
 import { MasterClient } from "./clients/master-client";
 import { NoiaRequest, ConnectionType } from "./contracts/master";
 import { NoiaStreamDto, NoiaClient as NoiaClientInterface } from "./contracts/sdk";
@@ -10,6 +9,8 @@ import { WorkersPool } from "./workers/workers-pool";
 import { DefaultWorker } from "./workers/default-worker";
 import { NoiaStream } from "./noia-stream";
 import { cache } from "./clients/pieces-cache";
+import { WebSocketClient } from "./clients/websocket/websocket-client";
+import { WebSocketPool } from "./clients/websocket/websocket-pool";
 
 export interface NoiaClientOptions {
     pieceWorkerConstructor: () => Worker;
@@ -18,8 +19,8 @@ export interface NoiaClientOptions {
     logger?: LoggerBuilder;
 }
 
-const DEFAULT_MASTER_ADDRESS = "wss://csl-masters.noia.network:5566";
-// const DEFAULT_MASTER_ADDRESS = "wss://blockchain.noia.network:5566";
+// const DEFAULT_MASTER_ADDRESS = "wss://csl-masters.noia.network:5566";
+const DEFAULT_MASTER_ADDRESS = "wss://blockchain.noia.network:6566";
 
 export class NoiaClient implements NoiaClientInterface {
     constructor(options: NoiaClientOptions) {
@@ -45,10 +46,6 @@ export class NoiaClient implements NoiaClientInterface {
 
         this.masterClient = new MasterClient({
             masterAddress: options.masterUrl || DEFAULT_MASTER_ADDRESS,
-            logger: this.logger
-        });
-
-        this.webRtcPool = new WebRtcPool({
             logger: this.logger
         });
 
@@ -81,36 +78,57 @@ export class NoiaClient implements NoiaClientInterface {
                 });
             }
         });
+
+        this.webRtcPool = new WebRtcPool({
+            logger: this.logger
+        });
+
+        this.webSocketPool = new WebSocketPool({
+            logger: this.logger,
+            piecesPool: this.pieceWorkersPool
+        });
     }
 
     protected readonly logger: LoggerBuilder;
     protected masterClient: MasterClient;
     protected webRtcPool: WebRtcPool;
+    protected webSocketPool: WebSocketPool;
     protected pieceWorkersPool: WorkersPool<DefaultWorker>;
     protected sha1WorkersPool: WorkersPool<DefaultWorker>;
-    protected nodes: NodeClient[] = [];
     protected lastUsedNodeIndex: number = 0;
 
     public async openStream(request: NoiaRequest): Promise<NoiaStreamDto> {
-        const metadata = await this.masterClient.getMetadata({
+        const masterData = await this.masterClient.getMetadata({
             src: request.src,
-            connectionType: ConnectionType.WebRtc
+            connectionTypes: [ConnectionType.WebRtc, ConnectionType.Wss]
         });
 
         const webRtcClient = new WebRtcClient({
             cache: cache,
             webRtcPool: this.webRtcPool,
             sha1Pool: this.sha1WorkersPool,
-            metadata: metadata,
+            masterData: masterData,
+            src: request.src,
+            logger: this.logger
+        });
+
+        const webSocketClient = new WebSocketClient({
+            cache: cache,
+            webSocketPool: this.webSocketPool,
+            sha1Pool: this.sha1WorkersPool,
+            masterData: masterData,
+            piecesPool: this.pieceWorkersPool,
             src: request.src,
             logger: this.logger
         });
 
         return new NoiaStream({
-            metadata: metadata,
+            masterData: masterData,
             request: request,
             webRtcClient: webRtcClient,
-            logger: this.logger
+            logger: this.logger,
+            webSocketClient: webSocketClient,
+            masterClient: this.masterClient
         });
     }
 }

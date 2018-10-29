@@ -17,6 +17,8 @@ export class WebRtcPool extends PeersPool<WebRtcPeer, WebRtcPoolOptions> {
     };
 
     protected instantiatePeer(address: string, settings: WebRtcPoolOptions): WebRtcPeer {
+        this.logger.Debug("proxyAddress", settings.proxyControlAddress);
+        this.logger.Debug("address", address);
         const webRtcClientConstructor = () => new WebRtcDirectClient.Client(address, { proxyAddress: settings.proxyControlAddress });
         return new WebRtcPeer({
             address: address,
