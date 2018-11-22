@@ -19,8 +19,8 @@ export interface NoiaClientOptions {
     logger?: LoggerBuilder;
 }
 
-// const DEFAULT_MASTER_ADDRESS = "wss://csl-masters.noia.network:5566";
-const DEFAULT_MASTER_ADDRESS = "wss://blockchain.noia.network:6566";
+const DEFAULT_MASTER_ADDRESS = "wss://csl-masters.noia.network:5566";
+// const DEFAULT_MASTER_ADDRESS = "wss://blockchain.noia.network:6566";
 
 export class NoiaClient implements NoiaClientInterface {
     constructor(options: NoiaClientOptions) {
@@ -100,7 +100,7 @@ export class NoiaClient implements NoiaClientInterface {
     public async openStream(request: NoiaRequest): Promise<NoiaStreamDto> {
         const masterData = await this.masterClient.getMetadata({
             src: request.src,
-            connectionTypes: [ConnectionType.WebRtc, ConnectionType.Wss]
+            connectionTypes: [ConnectionType.WebRtc]
         });
 
         const webRtcClient = new WebRtcClient({

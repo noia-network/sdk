@@ -5,6 +5,8 @@ import { Sha1WorkerMessage } from "../../contracts/worker";
 import { ClientBase, ClientBaseOptions } from "../../abstractions/client-base";
 import { ContentResponse } from "@noia-network/protocol";
 import { protoJson } from "../proto";
+import { Peer } from "../../contracts/master";
+import { Encryption } from "../../encryption";
 
 export interface WebRtcClientOptions extends ClientBaseOptions {
     webRtcPool: WebRtcPool;
@@ -22,10 +24,15 @@ export class WebRtcClient extends ClientBase {
         return protoJson;
     }
 
+    protected getPeerAddress(peer: Peer): string {
+        return `http://${peer.host}:${peer.ports.webrtc}`;
+    }
+
     protected async ensurePeersHandler(): Promise<void> {
         return new Promise<void>(async resolve => {
             for (const peer of this.masterData.peers) {
-                const address = `http://${peer.host}:${peer.ports.webrtc}`;
+                const address = this.getPeerAddress(peer);
+
                 this.logger.Debug(`Adding peer '${address}' to '${this.src}'.`);
                 this.webRtcPool.addFilePeer(this.src, address, {
                     proxyControlAddress: this.masterData.settings.proxyControlAddress
@@ -46,13 +53,18 @@ export class WebRtcClient extends ClientBase {
             });
             const pieceIndex = pieceRequest.index;
             const integritySha1 = this.masterData.metadata.piecesIntegrity[pieceIndex];
+            const currentPeer = this.masterData.peers.find(x => this.getPeerAddress(x) === peer.address);
+            if (currentPeer == null) {
+                throw new Error("Current peer metadata has not been found.");
+            }
+
             client.addListener("data", async message => {
                 this.logger.Debug(message);
                 if (!(message instanceof ArrayBuffer)) {
                     reject("Message type is not ArrayBuffer.");
                     return;
                 }
-                const pieceResult = await this.handleData(message, pieceIndex, integritySha1);
+                const pieceResult = await this.handleData(message, pieceIndex, integritySha1, currentPeer.secretKey);
                 resolve(pieceResult);
             });
             this.logger.Debug(`Sending request to client...`, pieceRequest);
@@ -64,7 +76,12 @@ export class WebRtcClient extends ClientBase {
         return promise;
     }
 
-    protected async handleData(data: ArrayBuffer, pieceIndex: number, integritySha1: string): Promise<PieceResult> {
+    protected async handleData(
+        data: ArrayBuffer,
+        pieceIndex: number,
+        integritySha1: string,
+        secretKey: string | null
+    ): Promise<PieceResult> {
         this.logger.Debug(`Got response`, data);
         this.logger.Debug(`Decoding data...`);
         const content: ContentResponse = await this.decodeData(data);
@@ -93,14 +110,54 @@ export class WebRtcClient extends ClientBase {
         const sha1Promise = new Promise(sha1Resolve => {
             sha1Worker.worker.addEventListener("message", message => {
                 const sha1Data: Sha1WorkerMessage = message.data;
+                this.logger.Debug(`sha1Data`, sha1Data);
                 if (messageId === sha1Data.id) {
                     sha1Resolve(sha1Data.hash);
                 }
             });
         });
-        sha1Worker.worker.postMessage({ id: messageId, data: responseData.buffer });
-        const sha1Hash = await sha1Promise;
 
+        let decryptedBuffer: Buffer | undefined = undefined;
+        if (secretKey != null) {
+            this.logger.Debug("Decrypting before SHA1 check...");
+            const start = performance.now();
+            decryptedBuffer = Encryption.decrypt(secretKey, responseData.buffer);
+            const end = performance.now();
+            this.logger.Debug(`Took ${end - start}ms.`);
+            this.logger.Debug("Checking SHA1...");
+            sha1Worker.worker.postMessage({ id: messageId, data: decryptedBuffer });
+            const hash1 = await sha1Promise;
+
+            const sha1Promise2 = new Promise(sha1Resolve => {
+                sha1Worker.worker.addEventListener("message", workerMessage => {
+                    const sha1Data: Sha1WorkerMessage = workerMessage.data;
+                    if (messageId === sha1Data.id) {
+                        sha1Resolve(sha1Data.hash);
+                    }
+                });
+            });
+
+            sha1Worker.worker.postMessage({
+                id: messageId,
+                data: responseData.buffer
+            });
+
+            const hash2 = await sha1Promise2;
+            const expectedSha1 = "10aabf57c78c7309a3da9dae4dec647522bb179a";
+            const expectedSecretKey = "518484f9eb9d7d80c63c";
+            let message = `Expected sha1 matches: ${expectedSha1 === hash2}\n`;
+            message += `Expected secret key:   ${expectedSecretKey === secretKey}\n`;
+            message += `Before:   ${hash2}\n`;
+            message += `After:    ${hash1}\n`;
+            message += `Expected: ${integritySha1}\n`;
+            message += `Key:      ${secretKey}`;
+            this.logger.Debug(message);
+        } else {
+            sha1Worker.worker.postMessage({ id: messageId, data: responseData.buffer });
+            this.logger.Debug("Checking SHA1...");
+        }
+
+        const sha1Hash = await sha1Promise;
         sha1Worker.release();
 
         if (sha1Hash !== integritySha1) {
@@ -111,11 +168,13 @@ export class WebRtcClient extends ClientBase {
             this.logger.Debug(`Integrity check succeeded for ${this.src} piece #${pieceIndex}: ${sha1Hash}`);
         }
 
+        const buffer = decryptedBuffer != null ? decryptedBuffer : Buffer.from(responseData.buffer);
+
         return {
             contentId: responseData.contentId,
             index: responseData.index,
             offset: responseData.offset,
-            buffer: Buffer.from(responseData.buffer)
+            buffer: buffer
         };
     }
 }

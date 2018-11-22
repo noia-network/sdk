@@ -5,6 +5,8 @@ import { DefaultWorker } from "../../workers/default-worker";
 import { WebSocketPool } from "./websocket-pool";
 import { protoJson } from "../proto";
 import { PiecesWorkerMessage, ResultStatus, Sha1WorkerMessage } from "../../contracts/worker";
+import { Peer } from "../../contracts/master";
+import { Encryption } from "../../encryption";
 
 export interface WebSocketOptions extends ClientBaseOptions {
     webSocketPool: WebSocketPool;
@@ -26,10 +28,14 @@ export class WebSocketClient extends ClientBase {
         return protoJson;
     }
 
+    protected getPeerAddress(peer: Peer): string {
+        return `wss://${peer.host}:${peer.ports.wss}`;
+    }
+
     protected async ensurePeersHandler(): Promise<void> {
         return new Promise<void>(async resolve => {
             for (const peer of this.masterData.peers) {
-                const address = `wss://${peer.host}:${peer.ports.wss}`;
+                const address = this.getPeerAddress(peer);
                 this.logger.Debug(`Adding peer '${address}' to '${this.src}'.`);
                 this.webSocketPool.addFilePeer(this.src, address);
             }
@@ -50,9 +56,13 @@ export class WebSocketClient extends ClientBase {
 
             const pieceIndex = pieceRequest.index;
             const integritySha1 = this.masterData.metadata.piecesIntegrity[pieceIndex];
+            const currentPeer = this.masterData.peers.find(x => this.getPeerAddress(x) === peer.address);
+            if (currentPeer == null) {
+                throw new Error("Current peer metadata has not been found.");
+            }
 
             client.addListener("message", async message => {
-                const pieceResult = await this.handleData(message, pieceIndex, integritySha1);
+                const pieceResult = await this.handleData(message, pieceIndex, integritySha1, currentPeer.secretKey);
                 resolve(pieceResult);
             });
             this.logger.Debug(`Sending request to client...`, pieceRequest);
@@ -66,7 +76,12 @@ export class WebSocketClient extends ClientBase {
         return promise;
     }
 
-    protected async handleData(message: MessageEvent, pieceIndex: number, integritySha1: string): Promise<PieceResult> {
+    protected async handleData(
+        message: MessageEvent,
+        pieceIndex: number,
+        integritySha1: string,
+        secretKey: string | null
+    ): Promise<PieceResult> {
         this.logger.Debug("message", message);
         this.logger.Debug("pieceIndex", pieceIndex);
         this.logger.Debug("integritySha1", integritySha1);
@@ -110,12 +125,19 @@ export class WebSocketClient extends ClientBase {
                     this.logger.Debug(`Integrity check succeeded for ${this.src} piece #${pieceIndex}: ${sha1Hash}`);
                 }
 
+                let buffer: Buffer;
+                if (secretKey != null && secretKey !== "") {
+                    buffer = Encryption.decrypt(secretKey, responseData.buffer);
+                } else {
+                    buffer = Buffer.from(responseData.buffer);
+                }
+
                 piecesWorker.release();
                 resolve({
                     contentId: responseData.contentId,
                     index: responseData.index,
                     offset: responseData.offset,
-                    buffer: Buffer.from(responseData.buffer)
+                    buffer: buffer
                 });
             });
 
