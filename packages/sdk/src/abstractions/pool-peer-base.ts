@@ -3,7 +3,7 @@ import { PoolPeer } from "./peers-pool";
 export type PoolPeerReleaseHandler = (address: string) => void;
 
 export abstract class PoolPeerBase implements PoolPeer {
-    constructor(protected readonly address: string, protected readonly releasePeer: PoolPeerReleaseHandler) {}
+    constructor(public readonly address: string, protected readonly releasePeer: PoolPeerReleaseHandler) {}
 
     protected connected: boolean = false;
     protected destroyed: boolean = false;

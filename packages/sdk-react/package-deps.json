@@ -1,0 +1,20 @@
+{
+  "files": {
+    "packages/sdk-react/.gitignore": "68d2ae3f9db259866692e153535552918daeb210",
+    "packages/sdk-react/.prettierrc": "a27e0523db1e5da710a8cc556bfd22f8ee3f26be",
+    "packages/sdk-react/.vscode/settings.json": "b38aebb55b1b3875330113351daeb6914482233f",
+    "packages/sdk-react/package.json": "d06e1061092ec3cbc18745f45ad8cd19af4758db",
+    "packages/sdk-react/shrinkwrap.yaml": "c9d7dc9f052851eb495e049bbf3df5382fdaea85",
+    "packages/sdk-react/src/components/image.tsx": "aea00ebfd70b7dd2eb033c897e895d214bf003b3",
+    "packages/sdk-react/src/components/video.tsx": "4f18c6fbb65658e7f566fe5229c9c81c822fff33",
+    "packages/sdk-react/src/index.ts": "7f8515a4e187ecb2a6466f34fd7d1d2d42c02834",
+    "packages/sdk-react/src/utils/helpers.ts": "e8c07e58f8de84e19beb8c015b08cabfecf07bec",
+    "packages/sdk-react/tools/tsconfig.json": "79d85fb1eb3317cefe970a8985134c73b836f719",
+    "packages/sdk-react/tools/types.d.ts": "8f75ea71ef42f1827354cb46159cba5ce9b1ffce",
+    "packages/sdk-react/tools/webpack.config.ts": "56eba58b61bdeb73bfd4e81eae47847c15c3dc8e",
+    "packages/sdk-react/tsconfig.json": "de957ad83417c6cda339d86ae9803928358b9a08",
+    "packages/sdk-react/tslint.json": "3385cef2c158f173f4a02d6ecebb436d7c5a6200",
+    "common/config/rush/shrinkwrap.yaml": "3c27bde0dafe81ce441e4cd1f14dacd43ea6fe9b"
+  },
+  "arguments": "tsc -p ./tools && tsc -p . "
+}

@@ -37,7 +37,7 @@ export interface Peer {
     host: string;
     location: Location;
     ports: Ports;
-    secretKey: string;
+    secretKey: string | null;
 }
 
 export interface Settings {
