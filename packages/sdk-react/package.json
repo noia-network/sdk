@@ -1,8 +1,8 @@
 {
     "name": "@noia-network/sdk-react",
-    "version": "2.0.1-rc",
+    "version": "2.0.2-alpha",
     "publishConfig": {
-        "tag": "rc"
+        "tag": "alpha"
     },
     "description": "",
     "main": "./dist/index.js",
