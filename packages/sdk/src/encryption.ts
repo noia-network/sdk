@@ -1,7 +1,7 @@
 import * as CryptoJS from "crypto-js";
 
 export class Encryption {
-    private constructor() { }
+    private constructor() {}
 
     public static encrypt(key: string, buffer: Buffer): Buffer {
         const dataWordArray = CryptoJS.lib.WordArray.create(buffer);
@@ -43,7 +43,7 @@ export class Encryption {
         return view.buffer;
     }
 
-    private static toBuffer(ab: ArrayBuffer): Buffer {
+    public static toBuffer(ab: ArrayBuffer): Buffer {
         const buf = new Buffer(ab.byteLength);
         const view = new Uint8Array(ab);
 

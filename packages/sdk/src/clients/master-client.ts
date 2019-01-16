@@ -41,6 +41,11 @@ export class MasterClient extends SocketClient {
 
         const masterData = masterResponse.data;
 
+        if (masterResponse.status !== 200) {
+            this.logger.Debug("masterResponse.status", masterResponse.status);
+            return;
+        }
+
         // Freeze object if freeze is supported.
         if (Object.freeze != null) {
             Object.freeze(masterData);

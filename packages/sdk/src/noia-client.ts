@@ -1,7 +1,7 @@
 import { LoggerBuilder, LogLevel } from "simplr-logger";
 import { ConsoleMessageHandler } from "simplr-logger/handlers";
 import { MasterClient } from "./clients/master-client";
-import { NoiaRequest, ConnectionType } from "./contracts/master";
+import { NoiaRequest, ConnectionType, MasterData } from "./contracts/master";
 import { NoiaStreamDto, NoiaClient as NoiaClientInterface } from "./contracts/sdk";
 import { WebRtcPool } from "./clients/webrtc/webrtc-pool";
 import { WebRtcClient } from "./clients/webrtc/webrtc-client";
@@ -98,10 +98,16 @@ export class NoiaClient implements NoiaClientInterface {
     protected lastUsedNodeIndex: number = 0;
 
     public async openStream(request: NoiaRequest): Promise<NoiaStreamDto> {
-        const masterData = await this.masterClient.getMetadata({
-            src: request.src,
-            connectionTypes: [ConnectionType.WebRtc]
-        });
+        let masterData: MasterData;
+        try {
+            masterData = await this.masterClient.getMetadata({
+                src: request.src,
+                connectionTypes: [ConnectionType.WebRtc]
+            });
+        } catch (err) {
+            // @ts-ignore
+            masterData = { src: request.src };
+        }
 
         const webRtcClient = new WebRtcClient({
             cache: cache,
