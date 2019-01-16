@@ -26,7 +26,7 @@
         "webpack-dev-server": "^3.1.10"
     },
     "dependencies": {
-        "@noia-network/sdk": "^2.0.1-rc",
+        "@noia-network/sdk": "^2.0.2-alpha",
         "@types/mime-types": "^2.1.0",
         "@types/react": "^16.4.18",
         "@types/node": "^10.12.0",

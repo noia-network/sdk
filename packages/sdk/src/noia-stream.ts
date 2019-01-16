@@ -6,6 +6,7 @@ import { NoiaStreamDto } from "./contracts/sdk";
 import { WebSocketClient } from "./clients/websocket/websocket-client";
 import { MasterClient } from "./clients/master-client";
 import { ClientBase } from "./abstractions/client-base";
+import { Encryption } from "./encryption";
 
 export interface NoiaStreamOptions {
     masterData: MasterData;
@@ -104,25 +105,31 @@ export class NoiaStream implements NoiaStreamDto {
 
     public async getAllBytes(): Promise<Buffer> {
         const { metadata } = this.masterData;
-        const client = await this.getClient();
 
-        const promises: Array<Promise<PieceResult>> = [];
-        this.logger.Debug(`Pieces count: ${metadata.piecesIntegrity.length}`);
+        try {
+            const client = await this.getClient();
 
-        for (let index = 0; index < metadata.piecesIntegrity.length; index++) {
-            if (metadata.piecesIntegrity.hasOwnProperty(index)) {
-                const piecePromise = client.getPiece({
-                    contentId: metadata.contentId,
-                    offset: 0,
-                    index: index
-                });
-                promises.push(piecePromise);
+            const promises: Array<Promise<PieceResult>> = [];
+            this.logger.Debug(`Pieces count: ${metadata.piecesIntegrity.length}`);
+
+            for (let index = 0; index < metadata.piecesIntegrity.length; index++) {
+                if (metadata.piecesIntegrity.hasOwnProperty(index)) {
+                    const piecePromise = client.getPiece({
+                        contentId: metadata.contentId,
+                        offset: 0,
+                        index: index
+                    });
+                    promises.push(piecePromise);
+                }
             }
-        }
-        this.logger.Debug(`Promises count: ${promises.length}`);
+            this.logger.Debug(`Promises count: ${promises.length}`);
 
-        const pieces: PieceResult[] = await Promise.all(promises);
-        return Buffer.concat(pieces.map(x => x.buffer));
+            const pieces: PieceResult[] = await Promise.all(promises);
+            return Buffer.concat(pieces.map(x => x.buffer));
+        } catch (err) {
+            const data = await fetch(this.masterData.src);
+            return Encryption.toBuffer(await data.arrayBuffer());
+        }
     }
 
     public bufferPieces(startingPieceIndex: number, numberOfPiecesToBuffer: number): void {
