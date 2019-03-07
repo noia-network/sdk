@@ -1,6 +1,6 @@
 {
     "name": "@noia-network/sdk-react",
-    "version": "2.0.2-alpha",
+    "version": "2.0.3-alpha",
     "publishConfig": {
         "tag": "alpha"
     },
@@ -26,7 +26,7 @@
         "webpack-dev-server": "^3.1.10"
     },
     "dependencies": {
-        "@noia-network/sdk": "^2.0.2-alpha",
+        "@noia-network/sdk": "^2.0.3-alpha",
         "@types/mime-types": "^2.1.0",
         "@types/react": "^16.4.18",
         "@types/node": "^10.12.0",

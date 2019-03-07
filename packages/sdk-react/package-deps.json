@@ -3,7 +3,8 @@
     "packages/sdk-react/.gitignore": "68d2ae3f9db259866692e153535552918daeb210",
     "packages/sdk-react/.prettierrc": "a27e0523db1e5da710a8cc556bfd22f8ee3f26be",
     "packages/sdk-react/.vscode/settings.json": "b38aebb55b1b3875330113351daeb6914482233f",
-    "packages/sdk-react/package.json": "d06e1061092ec3cbc18745f45ad8cd19af4758db",
+    "packages/sdk-react/package-deps.json": "1e6ab16ac2a8c4bf5e9d5eca185e5e12c0b761ec",
+    "packages/sdk-react/package.json": "d4061d73b196e5deb622d2274b40c37f02f1ca70",
     "packages/sdk-react/shrinkwrap.yaml": "c9d7dc9f052851eb495e049bbf3df5382fdaea85",
     "packages/sdk-react/src/components/image.tsx": "aea00ebfd70b7dd2eb033c897e895d214bf003b3",
     "packages/sdk-react/src/components/video.tsx": "4f18c6fbb65658e7f566fe5229c9c81c822fff33",
@@ -14,7 +15,7 @@
     "packages/sdk-react/tools/webpack.config.ts": "56eba58b61bdeb73bfd4e81eae47847c15c3dc8e",
     "packages/sdk-react/tsconfig.json": "de957ad83417c6cda339d86ae9803928358b9a08",
     "packages/sdk-react/tslint.json": "3385cef2c158f173f4a02d6ecebb436d7c5a6200",
-    "common/config/rush/shrinkwrap.yaml": "3c27bde0dafe81ce441e4cd1f14dacd43ea6fe9b"
+    "common/config/rush/shrinkwrap.yaml": "0324f7debbc60860e0497a80635a080964d738f9"
   },
   "arguments": "tsc -p ./tools && tsc -p . "
 }
