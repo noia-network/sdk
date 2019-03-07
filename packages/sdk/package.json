@@ -1,6 +1,6 @@
 {
     "name": "@noia-network/sdk",
-    "version": "2.0.3-alpha",
+    "version": "2.0.4-alpha",
     "publishConfig": {
         "tag": "alpha"
     },
