@@ -43,6 +43,15 @@ export class MasterClient extends SocketClient {
 
         if (masterResponse.status !== 200) {
             this.logger.Debug("masterResponse.status", masterResponse.status);
+            if (this.deferredResponses[this.generateKey(masterData.src, ConnectionType.WebRtc)] != null) {
+                this.deferredResponses[this.generateKey(masterData.src, ConnectionType.WebRtc)].reject(masterData);
+            }
+            if (this.deferredResponses[this.generateKey(masterData.src, ConnectionType.Wss)] != null) {
+                this.deferredResponses[this.generateKey(masterData.src, ConnectionType.Wss)].reject(masterData);
+            }
+            if (this.deferredResponses[this.generateKey(masterData.src, ConnectionType.Ws)] != null) {
+                this.deferredResponses[this.generateKey(masterData.src, ConnectionType.Ws)].reject(masterData);
+            }
             return;
         }
 
