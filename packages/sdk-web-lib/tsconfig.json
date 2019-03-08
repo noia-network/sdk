@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "target": "es5",
+        "rootDir": "src",
+        "outDir": "dist",
+        "jsx": "react",
+        "lib": ["dom", "es2015"],
+        "inlineSourceMap": true,
+        "inlineSources": true,
+        "plugins": [
+            {
+                "name": "tslint-language-service",
+                "alwaysShowRuleFailuresAsWarnings": true,
+                "ignoreDefinitionFiles": true
+            }
+        ]
+    }
+}
