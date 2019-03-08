@@ -74,8 +74,12 @@ $ npm run build
 
         // Enable/disable logging (optional).
         // window.NOIA.settings.log = true;
+
+        // Initialize NOIA client.
         window.NOIA.init();
+
         ready(() => {
+            // Execute content loader.
             window.NOIA.load();
         });
     </script>
