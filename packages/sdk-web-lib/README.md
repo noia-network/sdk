@@ -34,22 +34,13 @@ $ npm run build
 $ npm install
 ```
 
-7. Specifi public path in `webpack.config.js` if not base (`./`):
-
-```js
-const config = webpack.generateWebpackConfig({
-    ...
-    publicPath: "./relative/public/path/"
-});
-```
-
-8.  Build SDK WL library
+7.  Build SDK WL library
 
 ```sh
 $ npm run build
 ```
 
-9.  Use library (`packages/sdk-web-lib/dist`)
+8.  Use library (`packages/sdk-web-lib/dist`)
 
 ## Minimal `index.html` demo how SDK WL can be used
 
