@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "baseUrl": "src",
         "strict": true,
         "target": "es5",
         "rootDir": "src",

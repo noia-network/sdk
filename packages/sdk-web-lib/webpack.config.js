@@ -9,6 +9,7 @@ const config = webpack.generateWebpackConfig({
     outputDirectory: "dist",
     target: "web",
     devServerPort: 8888
+    // publicPath: "./relative/public/path"
 });
 module.exports = (env, argv) => {
     config.output.libraryTarget = "window";
