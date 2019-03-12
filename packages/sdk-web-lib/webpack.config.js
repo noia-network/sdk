@@ -8,9 +8,10 @@ const config = webpack.generateWebpackConfig({
     entryFile: "./src/index.ts",
     outputDirectory: "dist",
     target: "web",
-    devServerPort: 8888
-    // publicPath: "./relative/public/path"
+    devServerPort: 8888,
+    publicPath: "/"
 });
+
 module.exports = (env, argv) => {
     config.output.libraryTarget = "window";
     if (argv.mode === "production") {
@@ -20,5 +21,6 @@ module.exports = (env, argv) => {
             config.plugins.push(new CompressionPlugin());
         }
     }
+
     return config;
 };

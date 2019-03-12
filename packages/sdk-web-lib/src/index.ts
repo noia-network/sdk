@@ -1,7 +1,9 @@
 import "../../sdk/dist/vendors~main";
 import { NoiaClient, NoiaClientContainer } from "../../sdk";
-import * as PieceWorker from "worker-loader!../../sdk/worker";
-import * as Sha1Worker from "worker-loader!rusha/dist/rusha";
+// @ts-ignore
+import * as PieceWorker from "worker-loader?inline=true&fallback=false!../../sdk/worker";
+// @ts-ignore
+import * as Sha1Worker from "worker-loader?inline=true&fallback=false!rusha/dist/rusha";
 
 import { LoggerBuilder, LogLevel, ConsoleMessageHandler } from "simplr-logger";
 import { bytesToBase64 } from "./base64";
