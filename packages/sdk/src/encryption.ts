@@ -12,7 +12,7 @@ export class Encryption {
 
     public static decrypt(key: string, buffer: Buffer): Buffer {
         const cipherText = new TextDecoder("utf-8").decode(buffer);
-        const bytes = CryptoJS.AES.decrypt(cipherText, key);
+        const bytes = CryptoJS.AES.decrypt(cipherText, CryptoJS.enc.Hex.parse(key));
         const plainText = bytes.toString(CryptoJS.enc.Hex);
         const decryptedAB = Encryption.hexToArrayBuffer(plainText);
         // const decryptedBlob = Encryption.arrayBufferToBlob(decryptedAB);

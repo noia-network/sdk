@@ -1,6 +1,6 @@
 {
     "name": "@noia-network/sdk-web-lib",
-    "version": "2.0.4-alpha",
+    "version": "2.0.5-alpha",
     "publishConfig": {
         "tag": "alpha"
     },
