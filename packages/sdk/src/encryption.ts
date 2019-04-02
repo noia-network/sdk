@@ -12,7 +12,16 @@ export class Encryption {
 
     public static decrypt(key: string, buffer: Buffer): Buffer {
         const cipherText = new TextDecoder("utf-8").decode(buffer);
-        const bytes = CryptoJS.AES.decrypt(cipherText, CryptoJS.enc.Hex.parse(key));
+
+        let bytes;
+        const splitKey = key.split(":");
+        if (splitKey.length === 2) {
+            bytes = CryptoJS.AES.decrypt(cipherText, CryptoJS.enc.Hex.parse(splitKey[0]), { iv: splitKey[1] });
+        } else {
+            // Backwards compatibility.
+            bytes = CryptoJS.AES.decrypt(cipherText, key);
+        }
+
         const plainText = bytes.toString(CryptoJS.enc.Hex);
         const decryptedAB = Encryption.hexToArrayBuffer(plainText);
         // const decryptedBlob = Encryption.arrayBufferToBlob(decryptedAB);

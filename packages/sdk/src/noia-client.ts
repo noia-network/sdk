@@ -99,6 +99,11 @@ export class NoiaClient implements NoiaClientInterface {
 
     public async openStream(request: NoiaRequest): Promise<NoiaStreamDto> {
         let masterData: MasterData;
+
+        if (window != null && window.location != null) {
+            request.src = new URL(request.src, window.location.href).href;
+        }
+
         try {
             masterData = await this.masterClient.getMetadata({
                 src: request.src,
