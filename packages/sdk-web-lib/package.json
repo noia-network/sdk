@@ -1,11 +1,13 @@
 {
     "name": "@noia-network/sdk-web-lib",
-    "version": "2.0.6",
+    "version": "2.0.7",
     "description": "",
     "main": "index.js",
     "scripts": {
         "build": "webpack --config webpack.config.js --mode=production",
         "build-gzip": "webpack --config webpack.config.js --mode=production --compression=gzip",
+        "build-dev": "webpack --config webpack.config.js --mode=development",
+        "build-gzip-dev": "webpack --config webpack.config.js --mode=development --compression=gzip",
         "watch": "webpack-dev-server --config webpack.config.js --mode=development",
         "start": "npm run watch"
     },
