@@ -16,7 +16,7 @@ export class Encryption {
         let bytes;
         const splitKey = key.split(":");
         if (splitKey.length === 2) {
-            bytes = CryptoJS.AES.decrypt(cipherText, CryptoJS.enc.Hex.parse(splitKey[0]), { iv: splitKey[1] });
+            bytes = CryptoJS.AES.decrypt(cipherText, CryptoJS.enc.Hex.parse(splitKey[0]), { iv: CryptoJS.enc.Hex.parse(splitKey[1]) });
         } else {
             // Backwards compatibility.
             bytes = CryptoJS.AES.decrypt(cipherText, key);
