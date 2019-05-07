@@ -1,6 +1,6 @@
 {
     "name": "@noia-network/sdk",
-    "version": "2.0.8",
+    "version": "2.0.9",
     "description": "",
     "main": "dist/main.js",
     "types": "dist/main.d.ts",
@@ -69,7 +69,7 @@
     },
     "devDependencies": {
         "@babel/core": "7.1.2",
-        "@noia-network/webrtc-direct-client": "1.0.4",
+        "@noia-network/webrtc-direct-client": "^1.0.8",
         "@simplrjs/webpack": "0.1.0-alpha.14",
         "@types/jest": "^23.3.8",
         "@types/shortid": "0.0.29",
