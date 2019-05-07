@@ -40,7 +40,7 @@ $ npm install
 $ npm run build
 ```
 
-7.1  Build SDK library with development mode (optional)
+- Build SDK library with development mode (optional)
 
 ```sh
 $ npm run build-dev
