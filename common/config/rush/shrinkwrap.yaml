@@ -1,7 +1,7 @@
 dependencies:
   '@babel/core': 7.1.2
   '@noia-network/protocol': 1.0.1-rc.9
-  '@noia-network/webrtc-direct-client': 1.0.4
+  '@noia-network/webrtc-direct-client': 1.0.8
   '@rush-temp/sdk': 'file:projects/sdk.tgz'
   '@rush-temp/sdk-react': 'file:projects/sdk-react.tgz'
   '@simplrjs/webpack': 0.1.0-alpha.14
@@ -160,20 +160,20 @@ packages:
     dev: false
     resolution:
       integrity: sha512-e4ywtY6Wwb/uK/dqOV6DuZS5mDwHse7PeACgktFxZoGlUI71T6ayzJHlcgnsBzgXOLK9YqxkonMdsvzWTTwimw==
-  /@noia-network/webrtc-direct-client/1.0.4:
+  /@noia-network/webrtc-direct-client/1.0.8:
     dependencies:
       '@types/events': 1.2.0
       '@types/jquery': 3.3.29
-      '@types/node-fetch': 2.1.4
+      '@types/node-fetch': 2.3.3
       async-mutex: 0.1.3
       get-browser-rtc: 1.0.2
-      node-fetch: 2.3.0
+      node-fetch: 2.5.0
       strict-event-emitter-types: 2.0.0
       tslib: 1.9.3
       webrtc-adapter: 6.4.8
     dev: false
     resolution:
-      integrity: sha512-52yfP2bTI3lFmBkst6X9idnx1ulysWV35C9OzJ3sl/vCObJ9yzU8sl/p20wX1p3k+SKv9QCExIRgaHXcB43d5Q==
+      integrity: sha512-L0CgfrS04c3WG52TxgBH/WL1eRn1vSOsV1Agz66jv97nhaBMiGW8n/1cv0/txOeAOJm1Z6hPw7czIiV1xGmQUg==
   /@protobufjs/aspromise/1.1.2:
     dev: false
     resolution:
@@ -410,12 +410,12 @@ packages:
     dev: false
     resolution:
       integrity: sha1-fyrX7FX5FEgvybHsS7GuYCjUYGY=
-  /@types/node-fetch/2.1.4:
+  /@types/node-fetch/2.3.3:
     dependencies:
-      '@types/node': 10.12.18
+      '@types/node': 10.14.6
     dev: false
     resolution:
-      integrity: sha512-tR1ekaXUGpmzOcDXWU9BW73YfA2/VW1DF1FH+wlJ82BbCSnWTbdX+JkqWQXWKIGsFPnPsYadbXfNgz28g+ccWg==
+      integrity: sha512-MIplfRxrDTsIbOLGyFqNWTmxho5Fs710Kul35tEcaqkx9He86mGbSCDvILL0LCMfmm+oJ8tDg51crE9+pJGgiQ==
   /@types/node/10.11.3:
     dev: false
     resolution:
@@ -428,10 +428,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-3TUHC3jsBAB7qVRGxT6lWyYo2v96BMmD2PTcl47H25Lu7UXtFH/2qqmKiVrnel6Ne//0TFYf6uvNX+HW2FRkLQ==
-  /@types/node/10.12.18:
+  /@types/node/10.14.6:
     dev: false
     resolution:
-      integrity: sha512-fh+pAqt4xRzPfqA6eh3Z2y6fyZavRIumvjhaCL753+TVkGKGhpPeyrJG2JftD0T9q4GF00KjefsQ+PQNDdWQaQ==
+      integrity: sha512-Fvm24+u85lGmV4hT5G++aht2C5I4Z4dYlWZIh62FAfFO/TfzXtPpoLI6I7AuBWkIFqZCnhFOoTT7RjjaIL5Fjg==
   /@types/node/8.0.0:
     dev: false
     resolution:
@@ -5363,12 +5363,12 @@ packages:
     dev: false
     resolution:
       integrity: sha512-NhZ4CsKx7cYm2vSrBAr2PvFOe6sWDf0UYLRqA6svUYg7+/TSfVAu49jYC4BvQ4Sms9SZgdqGBgroqfDhJdTyKQ==
-  /node-fetch/2.3.0:
+  /node-fetch/2.5.0:
     dev: false
     engines:
       node: 4.x || >=6.0.0
     resolution:
-      integrity: sha512-MOd8pV3fxENbryESLgVIeaGKrdl+uaYhCSSVkjeOb/31/njTpcis5aWfdqgNlHIrKOLRbMnfPINPOML2CIFeXA==
+      integrity: sha512-YuZKluhWGJwCcUu4RlZstdAxr8bFfOVHakc1mplwHkk8J+tqM1Y5yraYvIUpeX8aY7+crCwiELJq7Vl0o0LWXw==
   /node-forge/0.7.5:
     dev: false
     resolution:
@@ -8495,6 +8495,7 @@ packages:
       integrity: sha1-a6MY6xaWFyf10oT46gA+jWFU0Mg=
   'file:projects/sdk-react.tgz':
     dependencies:
+      '@noia-network/webrtc-direct-client': 1.0.8
       '@simplrjs/webpack': /@simplrjs/webpack/0.1.0-alpha.14/4f482fa2c312723d9032c7e9655f5280
       '@types/mime-types': 2.1.0
       '@types/node': 10.12.0
@@ -8511,14 +8512,14 @@ packages:
     dev: false
     name: '@rush-temp/sdk-react'
     resolution:
-      integrity: sha512-CgFjufOsh9/ziU63ELwr199fz4dX9Td/WnnsUbiHTLQ8XpL06IIk3NhBTMsrU2tznMiaD81RWDBBtDhWo/EWbA==
+      integrity: sha512-QW2DXrdCASMasSHvQ1xwXQdGPF/eNqGwYztWgveb5pKEuU5usKqct21EhIwZ/0cDbkQFxlGuEn/YoUL8Mesfcw==
       tarball: 'file:projects/sdk-react.tgz'
     version: 0.0.0
   'file:projects/sdk.tgz':
     dependencies:
       '@babel/core': 7.1.2
       '@noia-network/protocol': 1.0.1-rc.9
-      '@noia-network/webrtc-direct-client': 1.0.4
+      '@noia-network/webrtc-direct-client': 1.0.8
       '@simplrjs/webpack': /@simplrjs/webpack/0.1.0-alpha.14/4f482fa2c312723d9032c7e9655f5280
       '@types/crypto-js': 3.1.43
       '@types/fbemitter': 2.0.32
@@ -8554,7 +8555,7 @@ packages:
     dev: false
     name: '@rush-temp/sdk'
     resolution:
-      integrity: sha512-FKdcRUNviN5f0uP4QFOiR97kfmIgCxHHUCPBL/NcrxyBLKBFXvbpMb4T6lNJhJHomEzUTm0P/rwCMzZ599hmiA==
+      integrity: sha512-fp5wRVZjX1s+c6Cq52S6mQ4YIkQAwIbFZYKaXngsc/HCRqKSvdo29hgpkA5ZNhybRXB+iqLrsgwn6fVjybwlVw==
       tarball: 'file:projects/sdk.tgz'
     version: 0.0.0
 registry: 'https://registry.npmjs.org/'
@@ -8563,7 +8564,7 @@ shrinkwrapVersion: 3
 specifiers:
   '@babel/core': 7.1.2
   '@noia-network/protocol': ^1.0.1-rc.8
-  '@noia-network/webrtc-direct-client': 1.0.4
+  '@noia-network/webrtc-direct-client': ^1.0.8
   '@rush-temp/sdk': 'file:./projects/sdk.tgz'
   '@rush-temp/sdk-react': 'file:./projects/sdk-react.tgz'
   '@simplrjs/webpack': 0.1.0-alpha.14
