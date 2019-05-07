@@ -1,6 +1,6 @@
 {
     "name": "@noia-network/sdk-web-lib",
-    "version": "2.0.8",
+    "version": "2.0.9",
     "description": "",
     "main": "index.js",
     "scripts": {
@@ -41,7 +41,7 @@
         "worker-loader": "^2.0.0"
     },
     "dependencies": {
-        "@noia-network/webrtc-direct-client": "1.0.1-rc.2",
+        "@noia-network/webrtc-direct-client": "^1.0.8",
         "@types/from2": "^2.3.0",
         "from2": "^2.3.0",
         "react": "^16.6.0",
