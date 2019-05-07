@@ -22,8 +22,8 @@ const init = () => {
 
 const load = (): void => {
     const images = document.getElementsByTagName("img");
-    const imageType = "image/jpeg";
     const loadImage = async (img: HTMLImageElement): Promise<void> => {
+        const imageType = img.getAttribute("data-src")!.endsWith(".svg") ? "image/svg+xml" : "image/jpg";
         const imgDataSrc = img.getAttribute("data-src");
         if (imgDataSrc) {
             //@ts-ignore
@@ -31,17 +31,24 @@ const load = (): void => {
             const stream = await client.openStream({
                 src: imgDataSrc
             });
-
-            //Image came from CDN.
-            if (stream.masterData.metadata) {
-                // Load image bytes.
-                const imageBytes = await stream.getAllBytes();
-                // Render image as bytes.
-                img.src = `data:${imageType};base64,${bytesToBase64(imageBytes)}`;
-                settings.getLogger().Info(`Image ${stream.masterData.src}: downloaded (${stream.masterData.metadata.bufferLength} bytes).`);
+            if (window.navigator.userAgent.indexOf("Edge") > -1 === true || window.navigator.userAgent.indexOf("MSIE") > -1 === true) {
+                img.src = img.getAttribute("data-src")!.replace("data-src", "src");
             } else {
-                img.src = imgDataSrc;
-                settings.getLogger().Warn(`Image ${stream.masterData.src}: not found.`);
+                // Image came from CDN.
+                if (stream.masterData.metadata) {
+                    // Load image bytes.
+                    const imageBytes = await stream.getAllBytes();
+                    // Render image as bytes.
+                    const blob = new Blob([imageBytes], { type: imageType });
+                    const blobUrl = URL.createObjectURL(blob);
+                    img.src = blobUrl;
+                    settings
+                        .getLogger()
+                        .Info(`Image ${stream.masterData.src}: downloaded (${stream.masterData.metadata.bufferLength} bytes).`);
+                } else {
+                    img.src = imgDataSrc;
+                    settings.getLogger().Warn(`Image ${stream.masterData.src}: not found.`);
+                }
             }
         }
     };
