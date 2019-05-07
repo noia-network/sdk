@@ -40,6 +40,12 @@ $ npm install
 $ npm run build
 ```
 
+7.1  Build SDK library with development mode (optional)
+
+```sh
+$ npm run build-dev
+```
+
 8.  Use library (`packages/sdk-web-lib/dist`)
 
 ## Minimal `index.html` demo how SDK WL can be used
